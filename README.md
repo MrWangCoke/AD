@@ -34,6 +34,9 @@ buildConfigField("String", "AUTH_BASE_URL", "\"https://ahutdx.online/\"")
 
 ## Backend
 
+Use JDK 17 for the backend. The Maven project is configured with
+`<java.version>17</java.version>`.
+
 Run from `backend/`:
 
 ```powershell
@@ -46,6 +49,22 @@ The backend uses PostgreSQL. Configure database settings with environment variab
 $env:SPRING_DATASOURCE_URL="jdbc:postgresql://localhost:5432/campus_network_db"
 $env:SPRING_DATASOURCE_USERNAME="postgres"
 $env:SPRING_DATASOURCE_PASSWORD="your_password"
+```
+
+For local development, you can also copy `backend/.env.local.example` to
+`backend/.env.local`, fill in your PostgreSQL password, and start with:
+
+```powershell
+.\start-backend.ps1
+```
+
+If you start from IntelliJ IDEA directly, add these values in
+`Run/Debug Configurations > Environment variables`:
+
+```text
+SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/campus_network_db
+SPRING_DATASOURCE_USERNAME=postgres
+SPRING_DATASOURCE_PASSWORD=your_password
 ```
 
 Default table for users:

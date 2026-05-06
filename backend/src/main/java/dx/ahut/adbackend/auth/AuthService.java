@@ -1,7 +1,9 @@
 package dx.ahut.adbackend.auth;
 
+import dx.ahut.adbackend.auth.AuthDtos.BindUserRequest;
 import dx.ahut.adbackend.auth.AuthDtos.LoginRequest;
 import dx.ahut.adbackend.auth.AuthDtos.RegisterRequest;
+import dx.ahut.adbackend.auth.AuthDtos.UpdateProfileRequest;
 import dx.ahut.adbackend.auth.AuthDtos.UserResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -64,8 +66,60 @@ public class AuthService {
         return UserResponse.from(user);
     }
 
+    @Transactional
+    public UserResponse bind(BindUserRequest request) {
+        String phone = normalize(request.phone());
+        String studentId = normalize(request.studentId());
+        validatePhone(phone);
+        if (studentId.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "请输入学号");
+        }
+
+        User user = userRepository.findByPhoneAndStudentId(phone, studentId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "未找到匹配用户，请先注册或检查手机号和学号"));
+        return UserResponse.from(user);
+    }
+
+    @Transactional
+    public UserResponse updateProfile(Long id, UpdateProfileRequest request) {
+        String phone = normalize(request.phone());
+        String name = normalize(request.name());
+        String studentId = normalize(request.studentId());
+        String avatarUrl = normalizeNullable(request.avatarUrl());
+
+        validatePhone(phone);
+        if (name.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "请输入姓名");
+        }
+        if (studentId.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "请输入学号");
+        }
+
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "用户不存在"));
+        userRepository.findByPhone(phone)
+                .filter(existing -> !existing.getId().equals(id))
+                .ifPresent(existing -> {
+                    throw new ResponseStatusException(HttpStatus.CONFLICT, "该手机号已被其他用户使用");
+                });
+
+        user.updateProfile(phone, name, studentId, avatarUrl);
+        return UserResponse.from(userRepository.save(user));
+    }
+
     private static String normalize(String value) {
         return value == null ? "" : value.trim();
+    }
+
+    private static String normalizeNullable(String value) {
+        String normalized = normalize(value);
+        return normalized.isEmpty() ? null : normalized;
+    }
+
+    private static void validatePhone(String phone) {
+        if (!phone.matches(MAINLAND_PHONE_PATTERN)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "请输入正确的11位手机号");
+        }
     }
 
     private static String defaultName(String phone) {

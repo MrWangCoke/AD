@@ -4,6 +4,7 @@ import com.mrwang.ad.BuildConfig
 import com.mrwang.ad.data.remote.model.BindUserRequest
 import com.mrwang.ad.data.remote.model.LoginRequest
 import com.mrwang.ad.data.remote.model.RegisterRequest
+import com.mrwang.ad.data.remote.model.UpdateProfileRequest
 import com.mrwang.ad.data.remote.model.UserResponse
 import com.mrwang.ad.data.remote.AuthApi
 import retrofit2.HttpException
@@ -65,6 +66,26 @@ class AuthRepository(
             Result.failure(IllegalStateException("无法连接后端服务"))
         } catch (error: Exception) {
             Result.failure(IllegalStateException(error.message ?: "未知错误"))
+        }
+    }
+
+    suspend fun updateProfile(
+        id: Long,
+        phone: String,
+        name: String,
+        studentId: String,
+        avatarUrl: String?
+    ): Result<UserResponse> {
+        return callAuth {
+            api.updateProfile(
+                id = id,
+                request = UpdateProfileRequest(
+                    phone = phone,
+                    name = name,
+                    studentId = studentId,
+                    avatarUrl = avatarUrl
+                )
+            )
         }
     }
 }

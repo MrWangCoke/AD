@@ -64,4 +64,11 @@ public class User {
     public String getAvatarUrl() {
         return avatarUrl;
     }
+
+    public void updateProfile(String phone, String name, String studentId, String avatarUrl) {
+        this.phone = phone;
+        this.name = name;
+        this.studentId = studentId;
+        this.avatarUrl = avatarUrl;
+    }
 }

@@ -20,6 +20,20 @@ public final class AuthDtos {
     ) {
     }
 
+    public record BindUserRequest(
+            @NotBlank String studentId,
+            @NotBlank String phone
+    ) {
+    }
+
+    public record UpdateProfileRequest(
+            @NotBlank String phone,
+            @NotBlank String name,
+            @NotBlank String studentId,
+            String avatarUrl
+    ) {
+    }
+
     public record UserResponse(
             Long id,
             String phone,

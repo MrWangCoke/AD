@@ -16,6 +16,13 @@ data class BindUserRequest(
     val phone: String
 )
 
+data class UpdateProfileRequest(
+    val phone: String,
+    val name: String,
+    val studentId: String,
+    val avatarUrl: String?
+)
+
 data class UserResponse(
     val id: Long,
     val phone: String,

@@ -114,17 +114,25 @@ class ProfileViewModel(
         }
 
         viewModelScope.launch {
-            val user = UserResponse(
+            _state.update { it.copy(isLoading = true) }
+            val result = authRepository.updateProfile(
                 id = snapshot.userId,
                 phone = phone,
                 name = name,
                 studentId = studentId,
                 avatarUrl = snapshot.editAvatarUrl
             )
-            applyUser(user)
-            userSessionRepository.saveUser(user)
-            _effect.emit(ProfileEffect.ShowMessage("资料已保存"))
-            _effect.emit(ProfileEffect.ProfileSaved)
+            _state.update { it.copy(isLoading = false) }
+            result
+                .onSuccess { user ->
+                    applyUser(user)
+                    userSessionRepository.saveUser(user)
+                    _effect.emit(ProfileEffect.ShowMessage("资料已保存"))
+                    _effect.emit(ProfileEffect.ProfileSaved)
+                }
+                .onFailure { error ->
+                    _effect.emit(ProfileEffect.ShowMessage(error.message ?: "保存失败"))
+                }
         }
     }
 
