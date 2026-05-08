@@ -35,12 +35,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.kyant.backdrop.backdrops.LayerBackdrop
 import com.mrwang.ad.app.AppBackgroundState
+import com.mrwang.ad.data.remote.model.TicketResponse
 
 @Composable
 fun ProfileRoute(
@@ -68,6 +70,12 @@ fun ProfileRoute(
         }
     }
 
+    LaunchedEffect(state.isLoggedIn, state.userId) {
+        if (state.isLoggedIn && state.userId > 0L) {
+            viewModel.onIntent(ProfileIntent.OnRefreshTickets)
+        }
+    }
+
     ProfileScreen(
         state = state,
         backdrop = backdrop,
@@ -85,6 +93,9 @@ fun ProfileRoute(
         onEditProfileClick = onEditProfileClick,
         onLogoutClick = {
             viewModel.onIntent(ProfileIntent.OnLogoutClick)
+        },
+        onRefreshTickets = {
+            viewModel.onIntent(ProfileIntent.OnRefreshTickets)
         }
     )
 }
@@ -103,7 +114,8 @@ private fun ProfileScreen(
     onResetBackground: () -> Unit,
     onLoginClick: () -> Unit,
     onEditProfileClick: () -> Unit,
-    onLogoutClick: () -> Unit
+    onLogoutClick: () -> Unit,
+    onRefreshTickets: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -177,7 +189,127 @@ private fun ProfileScreen(
             }
         }
 
+        TicketListGlassCard(
+            state = state,
+            backdrop = backdrop,
+            onRefreshTickets = onRefreshTickets
+        )
+
         Spacer(modifier = Modifier.height(40.dp))
+    }
+}
+
+@Composable
+private fun TicketListGlassCard(
+    state: ProfileState,
+    backdrop: LayerBackdrop,
+    onRefreshTickets: () -> Unit
+) {
+    GlassPanel(
+        backdrop = backdrop,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        text = "我的工单",
+                        color = Color.White,
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Text(
+                        text = if (state.isLoggedIn) "查看绑定和自动化处理进度" else "登录后查看工单状态",
+                        color = Color.White.copy(alpha = 0.72f),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+                GlassButton(
+                    text = if (state.isTicketsLoading) "刷新中" else "刷新",
+                    backdrop = backdrop,
+                    onClick = onRefreshTickets,
+                    enabled = state.isLoggedIn && !state.isTicketsLoading
+                )
+            }
+
+            if (!state.isLoggedIn) {
+                Text(
+                    text = "请先登录账号。",
+                    color = Color.White.copy(alpha = 0.78f),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            } else if (state.isTicketsLoading && state.tickets.isEmpty()) {
+                Text(
+                    text = "正在加载工单...",
+                    color = Color.White.copy(alpha = 0.78f),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            } else if (state.tickets.isEmpty()) {
+                Text(
+                    text = "暂无工单。主页提交新用户绑定后会显示在这里。",
+                    color = Color.White.copy(alpha = 0.78f),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            } else {
+                state.tickets.forEach { ticket ->
+                    TicketListItem(ticket = ticket)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun TicketListItem(ticket: TicketResponse) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color.White.copy(alpha = 0.08f), RoundedCornerShape(18.dp))
+            .border(1.dp, Color.White.copy(alpha = 0.12f), RoundedCornerShape(18.dp))
+            .padding(14.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = ticketTypeText(ticket),
+                color = Color.White,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.weight(1f)
+            )
+            Text(
+                text = ticketStatusText(ticket.status),
+                color = Color.White.copy(alpha = 0.9f),
+                style = MaterialTheme.typography.labelMedium
+            )
+        }
+        Text(
+            text = "# ${ticket.ticketNo}",
+            color = Color.White.copy(alpha = 0.78f),
+            style = MaterialTheme.typography.bodySmall
+        )
+        Text(
+            text = "提交时间：${formatTicketTime(ticket.createdAt)}",
+            color = Color.White.copy(alpha = 0.72f),
+            style = MaterialTheme.typography.bodySmall
+        )
+        if (!ticket.resultMessage.isNullOrBlank()) {
+            Text(
+                text = ticket.resultMessage,
+                color = Color.White.copy(alpha = 0.82f),
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
     }
 }
 
@@ -264,4 +396,32 @@ private fun Avatar(
             )
         }
     }
+}
+
+private fun ticketTypeText(ticket: TicketResponse): String {
+    return when (ticket.ticketType) {
+        1 -> "新用户绑定"
+        2 -> "账户不存在"
+        3 -> "宽带账号或密码错误"
+        else -> "工单类型 ${ticket.ticketType}"
+    }
+}
+
+private fun ticketStatusText(status: Int): String {
+    return when (status) {
+        0 -> "待处理"
+        1 -> "排队中"
+        2 -> "处理中"
+        3 -> "已完成"
+        else -> "待处理"
+    }
+}
+
+private fun formatTicketTime(value: String?): String {
+    if (value.isNullOrBlank()) {
+        return "待同步"
+    }
+    return value
+        .replace("T", " ")
+        .substringBefore(".")
 }

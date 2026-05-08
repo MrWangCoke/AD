@@ -49,6 +49,7 @@ class ProfileViewModel(
             ProfileIntent.OnEditSave -> saveProfile()
             ProfileIntent.OnLoginSubmit -> login()
             ProfileIntent.OnRegisterSubmit -> register()
+            ProfileIntent.OnRefreshTickets -> refreshTickets()
 
             ProfileIntent.OnLogoutClick -> {
                 viewModelScope.launch {
@@ -65,7 +66,8 @@ class ProfileViewModel(
                             editStudentId = "",
                             editPhone = "",
                             editAvatarUrl = null,
-                            loginPassword = ""
+                            loginPassword = "",
+                            tickets = emptyList()
                         )
                     }
                     _effect.emit(ProfileEffect.ShowMessage("已退出登录"))
@@ -127,6 +129,7 @@ class ProfileViewModel(
                 .onSuccess { user ->
                     applyUser(user)
                     userSessionRepository.saveUser(user)
+                    loadTickets(user.id)
                     _effect.emit(ProfileEffect.ShowMessage("资料已保存"))
                     _effect.emit(ProfileEffect.ProfileSaved)
                 }
@@ -140,6 +143,7 @@ class ProfileViewModel(
         viewModelScope.launch {
             userSessionRepository.getCachedUser()?.let { user ->
                 applyUser(user)
+                loadTickets(user.id)
             }
         }
     }
@@ -167,6 +171,7 @@ class ProfileViewModel(
                 .onSuccess { user ->
                     applyUser(user)
                     userSessionRepository.saveUser(user)
+                    loadTickets(user.id)
                     _effect.emit(ProfileEffect.ShowMessage("登录成功"))
                     _effect.emit(ProfileEffect.LoginSuccess)
                 }
@@ -204,6 +209,7 @@ class ProfileViewModel(
                 .onSuccess { user ->
                     applyUser(user)
                     userSessionRepository.saveUser(user)
+                    loadTickets(user.id)
                     _state.update {
                         it.copy(
                             loginPhone = user.phone,
@@ -220,6 +226,30 @@ class ProfileViewModel(
                     _effect.emit(ProfileEffect.ShowMessage(error.message ?: "注册失败"))
                 }
         }
+    }
+
+    private fun refreshTickets() {
+        val userId = _state.value.userId
+        if (userId <= 0L) {
+            emitMessage("请先登录")
+            return
+        }
+        viewModelScope.launch {
+            loadTickets(userId)
+        }
+    }
+
+    private suspend fun loadTickets(userId: Long) {
+        _state.update { it.copy(isTicketsLoading = true) }
+        val result = authRepository.getUserTickets(userId)
+        _state.update { it.copy(isTicketsLoading = false) }
+        result
+            .onSuccess { tickets ->
+                _state.update { it.copy(tickets = tickets) }
+            }
+            .onFailure { error ->
+                _effect.emit(ProfileEffect.ShowMessage(error.message ?: "工单加载失败"))
+            }
     }
 
     private fun applyUser(user: UserResponse) {

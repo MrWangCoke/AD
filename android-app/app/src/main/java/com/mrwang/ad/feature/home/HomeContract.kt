@@ -2,11 +2,14 @@ package com.mrwang.ad.feature.home
 
 
 data class HomeState(
+    val currentUserId: Long = 0L,
+    val currentUserPhone: String = "",
     val studentId: String = "",
     val campusPhone: String = "",
     val isBinding: Boolean = false,
     val boundStudentId: String = "",
-    val boundPhone: String = ""
+    val boundPhone: String = "",
+    val latestTicketNo: String = ""
 )
 
 sealed interface HomeIntent {

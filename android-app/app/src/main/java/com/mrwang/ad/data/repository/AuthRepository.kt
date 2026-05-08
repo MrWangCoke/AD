@@ -4,6 +4,7 @@ import com.mrwang.ad.BuildConfig
 import com.mrwang.ad.data.remote.model.BindUserRequest
 import com.mrwang.ad.data.remote.model.LoginRequest
 import com.mrwang.ad.data.remote.model.RegisterRequest
+import com.mrwang.ad.data.remote.model.TicketResponse
 import com.mrwang.ad.data.remote.model.UpdateProfileRequest
 import com.mrwang.ad.data.remote.model.UserResponse
 import com.mrwang.ad.data.remote.AuthApi
@@ -40,28 +41,23 @@ class AuthRepository(
         }
     }
 
-    suspend fun bindUser(studentId: String, phone: String): Result<UserResponse> {
-        return try {
-            val response = api.bindUser(
+    suspend fun bindUser(userId: Long, studentId: String, phone: String): Result<TicketResponse> {
+        return callTicket {
+            api.createNewUserBindTicket(
                 BindUserRequest(
+                    userId = userId,
                     studentId = studentId,
                     phone = phone
                 )
             )
-            if (response.isSuccessful) {
-                Result.success(
-                    response.body()
-                        ?: UserResponse(
-                            id = 0L,
-                            phone = phone,
-                            name = "新用户",
-                            studentId = studentId,
-                            avatarUrl = null
-                        )
-                )
-            } else {
-                Result.failure(IllegalStateException(parseErrorMessage(response.errorBody()?.string())))
-            }
+        }
+    }
+
+    suspend fun getUserTickets(userId: Long): Result<List<TicketResponse>> {
+        return try {
+            Result.success(api.getUserTickets(userId))
+        } catch (error: HttpException) {
+            Result.failure(IllegalStateException(parseErrorMessage(error.response()?.errorBody()?.string())))
         } catch (_: IOException) {
             Result.failure(IllegalStateException("无法连接后端服务"))
         } catch (error: Exception) {
@@ -91,6 +87,18 @@ class AuthRepository(
 }
 
 private suspend fun callAuth(block: suspend () -> UserResponse): Result<UserResponse> {
+    return try {
+        Result.success(block())
+    } catch (error: HttpException) {
+        Result.failure(IllegalStateException(parseErrorMessage(error.response()?.errorBody()?.string())))
+    } catch (_: IOException) {
+        Result.failure(IllegalStateException("无法连接后端服务"))
+    } catch (error: Exception) {
+        Result.failure(IllegalStateException(error.message ?: "未知错误"))
+    }
+}
+
+private suspend fun callTicket(block: suspend () -> TicketResponse): Result<TicketResponse> {
     return try {
         Result.success(block())
     } catch (error: HttpException) {

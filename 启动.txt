@@ -1,0 +1,8 @@
+以后新项目这样启动：
+打开power shell
+cd 后端项目地址
+.\start-backend.ps1
+另开一个 PowerShell：
+
+cd 后端项目地址
+.\start-tunnel.ps1

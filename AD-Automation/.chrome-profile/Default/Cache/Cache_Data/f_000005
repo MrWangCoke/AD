@@ -1,0 +1,4127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" http-equiv="X-UA-Compatible" content="IE=11;IE=10;IE=9; IE=8; IE=EDGE,chrome=1" />
+	<title>山石网科运维安全网关</title>
+	<!--<script type="text/javascript" src="/manage/js/jquery.min.js"></script>-->
+	<script>
+		var userAgent = navigator.userAgent;
+		var ie8 = userAgent.indexOf('Trident/4.0');
+
+		if(ie8 != -1){
+			document.write('<script src="/manage/js/jquery-IE8.js"></' + 'script>');
+		}else{
+			document.write('<script src="/manage/js/jquery.min.js"></' + 'script>');
+			document.write('<script src="/manage/js/worker.js"></' + 'script>');
+		}
+	</script>
+	<link rel="icon" href="/manage/images/favicon.ico" type="image/x-icon"/>
+	<link rel="stylesheet" href="/manage/css/login.css" type="text/css">
+	<script src="/manage/js/jquery.easing.js"></script>
+	<script src="/manage/js/layer.js"></script>
+	<script src="/manage/js/common.js"></script>
+	<script src="/manage/js/common_e.js"></script>
+	<script src="/manage/js/select2.full.min.js"></script>
+	<script src="/manage/js/icheck.min.js"></script>
+	<script src="/manage/js/jquery.plugin.js"></script>
+	<script src="/manage/js/base64.js"></script>
+	<script src="/manage/js/md5.js"></script>
+	<link rel="stylesheet" href="/manage/skin/icheck/minimal/blue.css">
+	<link rel="stylesheet" href="/manage/css/select2.min.css">
+	<link rel="stylesheet" href="/manage/css/style.css">
+	<script type="text/javascript" src="/manage/js/dialog-plus.js"></script>
+	<link rel="stylesheet" href="/manage/css/ui-dialog.css" type="text/css" />
+	<link rel="stylesheet" href="/manage/css/G-style.css">
+	<script src="/manage/js/pnxclient.js"></script>
+	<script src="/manage/js/tna-iam-client.js"></script>
+	<!--xing fu CA	
+	<script src="/manage/js/pki/jquery.jsonp.js"></script>
+	<script src="/manage/js/pki/SmartCA_PKI_IE_Lib.js"></script>
+	<script src="/manage/js/pki/SmartCA_PKI_Lib.js"></script>
+	<script src="/manage/js/pki/base64.js"></script>-->
+	
+</head>
+<body>
+	<div class="login-wrap">
+		<div class="login-box" style="width: 365px">
+			
+					
+					<div class="logo"><img src="/manage/images/login-logo.png" alt=""></div>
+				
+			
+				
+			<div class="form" id="loginForm">
+				<div class="item item1">
+					<i class="icon-u"></i>
+					<input type="text" id="uCode" autocomplete="off" tabindex="1" onkeydown="return Query(event)" onkeyup ="check_sms();ifshowvcode();"  placeholder="账号" />
+					<div class="btn" style="float:left;display:none;margin-left: 297px;    margin-top: -41px;padding: 0px;" id="div_sms">
+						<button type="button" class="" id="send_id" onclick="send_sms();" title="发送" class="login">发&emsp;送</button>
+					</div>
+				</div>
+
+				<div class="item item2">
+					<i class="icon-pwd"></i>
+					<i name="hide-password" id="icon-password" style="top: 14px;left: 330px;background:url(/manage/images/hide-password.png) no-repeat; display:none;"></i>
+					<input type="password" id="pW"  onkeydown="return Query(event)" autocomplete="off" tabindex="2" placeholder="密码" />
+				</div>
+				<div class="item item3" id="checkItem" style="display:none;">
+					<i class="icon-ver"></i>
+					<input class="vcode" type="text" name="vdcode" id="vdcode"  onkeydown="return Query(event)" placeholder="请输入验证码" onchange="_checkCode(this)"/>
+					<em class="check"></em>
+					<img id="icode_img" class="code" src="" alt="" onclick="_getNewCode(this)">
+				</div>
+			</div>
+
+			<div class="item" id="findRSA" style="font-size: 13px; padding-top: 10px;display:none;margin-left: 133px;float: left;">
+				<div class="item" onclick="_getDialog_RSA_pwd1();" style="text-align: center; width: 75px; cursor: pointer; margin-left: 67%; text-decoration: underline;">RSA同步
+				</div>
+			</div>
+			<div class="item" id="privacy_item_div" style="font-size: 13px; display:none;">
+				<div class="item" style="text-align: center;width: 159px;cursor: pointer; text-decoration: underline;margin-top: 9px;float: left;"><span class="_span_pri" onclick="_getDialog_privacy();">用户隐私协议</span>
+					<div class="form-c" style="margin-top: -21px;padding-left: 2px;margin-right: 99px;" >
+						<label class="form-label" style="margin-top:5px;vertical-align: initial;"><input class="form-checkbox" type ="checkbox" name="" id="privacy_btn" ></label>
+					</div>
+				</div>
+			</div>
+			<div class="item" id="findPwd" style="font-size: 13px; padding-top: 10px;margin-left: 106px;">
+				<div class="item" onclick="ForgetPwd(0);" style="text-align: center; width: 114px; cursor: pointer; margin-left: 57%; text-decoration: underline;">找回密码
+				</div>
+			</div>
+
+			<div id="verificationFrom" class="verificationFrom" style="display: none">
+				<div class="verification-code">
+					<i class="icon-verification"></i>
+					<input id="qr_code" class="code" placeholder="验证码" maxlength="6" onkeydown="if (event.keyCode == 13){test_qrcode();return false;} else return;"/>
+				</div>
+				<p class="message" style="margin-top: 10px;">从您设备上的两步验证应用获取验证码</p>
+			</div>
+
+
+			<div class="form fp1" id="loginForm" style="display: none; margin-top: 32px;">
+				<div class="item item1">
+					<i class="icon-u"></i><input type="text" id="newAcc" placeholder="账号" onblur="getType();"/>
+				</div>
+				<div class="item item2">
+					<div class="select">
+						<div class="select-result">请选择找回方式</div>
+						<div class="selects" id="select_content">
+							<!-- <div class="select-item">邮箱</div>
+							<div class="select-item">短信</div> -->
+						</div>
+					</div>
+				</div>				
+				<div class="item item3">
+					<i class="icon-ver"></i><input type="text" id="uCode1" placeholder="请输入验证码" style="width: 50%;">
+					<div class="btn fp1" style="float: left;margin-left: 297px;margin-top: -42px;padding: 0px;" id="div_sms">
+						<button type="button" class="" onclick="sendUcode(this);" id="senducode" title="获取验证码">发&emsp;送</button>
+					</div>
+					<!-- <button class="fp1" style="margin-left: 65%; transform: translateY(-123%); color: #3399ea; background-color: transparent; border-color: transparent; cursor: pointer; width: 110px; text-align: center;" onclick="sendUcode(this);">获取验证码</button> -->
+				</div>
+				<div class="item item4" style="border-top: 1px solid #cbcbcb;">
+					<i class="icon-pwd">
+					<i name="hide-password" id="icon-password1" style="top: 8px;left: 315px;background:url(/manage/images/hide-password.png) no-repeat; display:none;"></i>
+					</i><input type="password" id="newPwd" placeholder="新密码" />
+				</div>
+				<div class="item item4" style="border-top: 1px solid #cbcbcb;">
+					<i class="icon-pwd">
+					<i name="hide-password" id="icon-password2" style="top: 8px;left: 315px;background:url(/manage/images/hide-password.png) no-repeat; display:none;"></i>
+					</i><input type="password" id="newPwd1" placeholder="确认密码" />
+				</div>
+			</div>
+			
+			<div class="progress1" id="progress1" style="margin-top: 20px;margin-bottom: 0px;height: 50px;border-radius: 5px;border: none;display:none;"><div class="progress-bar progress-bar-info progress-bar-striped active" id="progress_width" style="width: 0%;border-radius: 5px;    height: 30px;margin-top: 10px;"></div><div class="progress-value" id="progress_value" style="display:none;"><span>登录中...</span></div></div>
+			<div class="btn" id="login_btn">
+				<button type="button" onclick="_login()" class="login">登&emsp;录</button>
+				<button type="button" id="submit_btn" class="verification buttom-list" onclick="test_qrcode();">确&emsp;定</button>
+				<button type="button" class="cancle buttom-list">取&emsp;消</button>
+				<button type="button" class="verification buttom-list fp1" style="width: 48%;" onclick="fpSubmit()">确&emsp;定</button>
+				<button type="button" class="verification buttom-list fp1" style="width: 48%;float: right;" onclick="fpCancle()">取&emsp;消</button>
+			</div>
+						
+		</div>
+	</div>
+	
+	
+	<div class="dialog-cont s-hide" id="pwd_code_div" style="display:none;max-height:300px">
+		<div style="float:left;margin-left: 72px">
+			<div class="form-item" style="width: 150px;">
+				<span class="form-tag" style="width: 113px;" >将初始密码作为本地密码：</span>
+				<div class="form-c" style="" >
+					<label class="form-label" style="margin-top:5px;vertical-align: initial;"><input class="form-checkbox" type ="checkbox" name="used_init_pwd" checked id="used_init_pwd"></label>
+				</div>
+			</div>	
+			<div id="div_pwd" style="display:none;">
+				<div class="form-item">
+					<span class="form-tag"><em class="imp">*</em><span id="span_pwd">密&nbsp;&nbsp;码</span>：</span>
+					<div class="form-c" style="width: 33.3%; position: absolute;">
+						<input type="password" class="form-text" id = "sys_u_pwd_new"  maxlength="64" tabindex="5" style="margin-left: 80px;"><i class="v-check"></i>
+					</div>
+				</div>
+				<div class="form-item">
+					<span class="form-tag"><em class="imp">*</em>确认密码：</span>
+					<div class="form-c">
+						<input type="password" class="form-text" id = "sys_u_pwd_tr" maxlength="64" tabindex="6"><i class="v-check"></i>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="tab-t">
+			<div class="ctr">
+				<a class="btn" href="javascript:;" style="margin-left:16px;" onclick="submit_pwd();">验证</a>
+			</div>
+		</div>
+		<!--
+		<div class="ctr">
+			<a class="btn" href="javascript:;" style="float:left;margin-left:13px;;padding: 0 15px;line-height: 24px;color: #8D808A;border: 1px solid #8D808A;border-radius: 5px;transition: all 0.4s;" onclick="submit_totp();">验证</a>
+		</div>
+		-->
+	</div>
+	
+	<div class="dialog-cont s-hide" id="qr_code_div" style="display:none;max-height:500px">
+		<span style="margin-left: 72px;">请使用您的两步验证应用扫描二维码</span>
+		<div style="text-align:center;">
+			<img src="">
+		</div>
+		<div style="text-align: center;height: 34px;">
+			<span>请在下方输入应用中的验证码进行测试。
+			</span>
+		</div>
+		<div style="float:left;margin-left: 72px">
+			<input type="text" class="form-text" id="totp_v" style="width:133px;" placeholder="输入验证码" onkeydown="if (event.keyCode == 13){submit_totp();return false;} else return;">
+		</div>
+		<div class="tab-t">
+			<div class="ctr">
+				<a class="btn" href="javascript:;" style="margin-left:16px;" onclick="submit_totp();">验证</a>
+			</div>
+		</div>
+		<!--
+		<div class="ctr">
+			<a class="btn" href="javascript:;" style="float:left;margin-left:13px;;padding: 0 15px;line-height: 24px;color: #8D808A;border: 1px solid #8D808A;border-radius: 5px;transition: all 0.4s;" onclick="submit_totp();">验证</a>
+		</div>
+		-->
+	</div>
+	
+	<!-- 1->本地密码   2->AD域   3->LDAP   4->RADIUS   6->令牌  8->BHost Key  10->TOTP   11->短信   12->邮箱  15->BOTP 17->微信 20->NP TOKEN-->
+	<div class="dialog-cont s-hide" id="local_div" style="display:none;max-height:300px">
+		<span style="margin-left: 72px;">请验证本地密码</span>
+		<div style="text-align:center;">
+			<img src="">
+		</div>
+		<div style="float:left;margin-left: 72px">
+			<input type="password" class="form-text" id="local_v" style="width:133px;" placeholder="输入本地密码" onkeydown="if (event.keyCode == 13){submit_auth(1);return false;} else return;">
+		</div>
+		<div class="tab-t">
+			<div class="ctr">
+				<a class="btn" href="javascript:;" style="margin-left:16px;" onclick="submit_auth(1);">验证</a>
+			</div>
+		</div>
+	</div>
+	<div class="dialog-cont s-hide" id="ad_div" style="display:none;max-height:300px">
+		<span style="margin-left: 72px;">请验证AD域</span>
+		<div style="text-align:center;">
+			<img src="">
+		</div>
+		<div style="float:left;margin-left: 72px">
+			<input type="password" class="form-text" id="ad_v" style="width:133px;" placeholder="输入AD域密码" onkeydown="if (event.keyCode == 13){submit_auth(2);return false;} else return;">
+		</div>
+		<div class="tab-t">
+			<div class="ctr">
+				<a class="btn" href="javascript:;" style="margin-left:16px;" onclick="submit_auth(2);">验证</a>
+			</div>
+		</div>
+	</div>
+
+	<div class="dialog-cont s-hide" id="ldap_div" style="display:none;max-height:300px">
+		<span style="margin-left: 72px;">请验证LDAP域</span>
+		<div style="text-align:center;">
+			<img src="">
+		</div>
+		<div style="float:left;margin-left: 72px">
+			<input type="password" class="form-text" id="ldap_v" style="width:133px;" placeholder="输入LDAP验证码" onkeydown="if (event.keyCode == 13){submit_auth(3);return false;} else return;">
+		</div>
+		<div class="tab-t">
+			<div class="ctr">
+				<a class="btn" href="javascript:;" style="margin-left:16px;" onclick="submit_auth(3);">验证</a>
+			</div>
+		</div>
+	</div>
+
+	<div class="dialog-cont s-hide" id="radius_div" style="display:none;max-height:300px">
+		<span style="margin-left: 72px;">请验证动态口令</span>
+		<div style="text-align:center;">
+			<img src="">
+		</div>
+		<div style="float:left;margin-left: 72px">
+			<input type="password" class="form-text" id="radius_v" style="width:133px;" placeholder="输入动态口令" onkeydown="if (event.keyCode == 13){submit_auth(4);return false;} else return;">
+		</div>
+		<div class="tab-t">
+			<div class="ctr">
+				<a class="btn" href="javascript:;" style="margin-left:16px;" onclick="submit_auth(4);">验证</a>
+			</div>
+		</div>
+	</div>
+	<div class="dialog-cont s-hide" id="token_div" style="display:none;max-height:300px">
+		<span style="margin-left: 72px;">请使用您的令牌码登录</span>
+		<div style="text-align:center;">
+			<img src="">
+		</div>
+		<div style="float:left;margin-left: 72px">
+			<input type="password" class="form-text" id="token_v" style="width:133px;" placeholder="输入令牌码" onkeydown="if (event.keyCode == 13){submit_auth(6);return false;} else return;">
+		</div>
+		<div class="tab-t">
+			<div class="ctr">
+				<a class="btn" href="javascript:;" style="margin-left:16px;" onclick="submit_auth(6);">验证</a>
+			</div>
+		</div>
+		<!--
+		<div class="ctr">
+			<a class="btn" href="javascript:;" style="float:left;margin-left:13px;;padding: 0 15px;line-height: 24px;color: #8D808A;border: 1px solid #8D808A;border-radius: 5px;transition: all 0.4s;" onclick="submit_totp();">验证</a>
+		</div>
+		-->
+	</div>
+	<div class="dialog-cont s-hide" id="usbkey_div" style="display:none;max-height:300px">
+		<span style="margin-left: 72px;">请使用您的PIN码登录</span>
+		<div style="text-align:center;">
+			<img src="">
+		</div>
+		<div style="float:left;margin-left: 72px">
+			<input type="password" class="form-text" id="usbkey_v" style="width:133px;" placeholder="输入PIN码" onkeydown="if (event.keyCode == 13){submit_auth(8);return false;} else return;">
+		</div>
+		<div class="tab-t">
+			<div class="ctr">
+				<a class="btn" href="javascript:;" style="margin-left:16px;" onclick="submit_auth(8);">验证</a>
+			</div>
+		</div>
+		<!--
+		<div class="ctr">
+			<a class="btn" href="javascript:;" style="float:left;margin-left:13px;;padding: 0 15px;line-height: 24px;color: #8D808A;border: 1px solid #8D808A;border-radius: 5px;transition: all 0.4s;" onclick="submit_totp();">验证</a>
+		</div>
+		-->
+	</div>
+
+	<div class="dialog-cont s-hide" id="nptoken_div" style="display:none;max-height:300px">
+		<span style="margin-left: 72px;">请使用您的令牌码登录</span>
+		<div style="text-align:center;">
+			<img src="">
+		</div>
+		<div style="float:left;margin-left: 72px">
+			<input type="password" class="form-text" id="nptoken_v" style="width:133px;" placeholder="输入令牌码" onkeydown="if (event.keyCode == 13){submit_auth(20);return false;} else return;">
+		</div>
+		<div class="tab-t">
+			<div class="ctr">
+				<a class="btn" href="javascript:;" style="margin-left:16px;" onclick="submit_auth(20);">验证</a>
+			</div>
+		</div>
+		<!--
+		<div class="ctr">
+			<a class="btn" href="javascript:;" style="float:left;margin-left:13px;;padding: 0 15px;line-height: 24px;color: #8D808A;border: 1px solid #8D808A;border-radius: 5px;transition: all 0.4s;" onclick="submit_totp();">验证</a>
+		</div>
+		-->
+	</div>
+
+	<div class="dialog-cont s-hide" id="c200token_div" style="display:none;max-height:300px">
+		<span style="margin-left: 72px;">请使用您的令牌码登录</span>
+		<div style="text-align:center;">
+			<img src="">
+		</div>
+		<div style="float:left;margin-left: 72px">
+			<input type="password" class="form-text" id="c200token_v" style="width:133px;" placeholder="输入令牌码" onkeydown="if (event.keyCode == 13){submit_auth(21);return false;} else return;">
+		</div>
+		<div class="tab-t">
+			<div class="ctr">
+				<a class="btn" href="javascript:;" style="margin-left:16px;" onclick="submit_auth(21);">验证</a>
+			</div>
+		</div>
+	</div>
+
+	<div class="dialog-cont s-hide" id="totp_div" style="display:none;max-height:300px">
+		<span style="margin-left: 72px;">请使用您的TOTP码登录</span>
+		<div style="text-align:center;">
+			<img src="">
+		</div>
+		<div style="float:left;margin-left: 72px">
+			<input type="password" class="form-text" id="totp_v1" style="width:133px;" placeholder="输入TOTP验证码" onkeydown="if (event.keyCode == 13){submit_auth(10);return false;} else return;">
+		</div>
+		<div class="tab-t">
+			<div class="ctr">
+				<a class="btn" href="javascript:;" style="margin-left:16px;" onclick="submit_auth(10);">验证</a>
+			</div>
+		</div>
+	</div>
+	<div class="dialog-cont s-hide" id="botp_div" style="display:none;max-height:300px">
+		<span style="margin-left: 72px;">请使用您的BOTP码登录</span>
+		<div style="text-align:center;">
+			<img src="">
+		</div>
+		<div style="float:left;margin-left: 72px">
+			<input type="password" class="form-text" id="botp_v1" style="width:133px;" placeholder="输入BOTP验证码" onkeydown="if (event.keyCode == 13){submit_auth(15);return false;} else return;">
+		</div>
+		<div class="tab-t">
+			<div class="ctr">
+				<a class="btn" href="javascript:;" style="margin-left:16px;" onclick="submit_auth(15);">验证</a>
+			</div>
+		</div>
+	</div>
+	<div class="dialog-cont s-hide" id="msg_div" style="display:none;max-height:300px">
+		<span style="margin-left: 72px;">请使用您的短信验证码登录</span>
+		<div style="text-align:center;">
+			<img src="">
+		</div>
+		<div style="float:left;margin-left: 72px">
+			<input type="password" class="form-text" id="msg_v" style="width:133px;" placeholder="输入短信验证码" onkeydown="if (event.keyCode == 13){submit_auth(11);return false;} else return;">
+		</div>
+		<div class="tab-t">
+			<div class="ctr">
+				<a class="btn" href="javascript:;" style="margin-left:16px;" onclick="submit_auth(11);">验证</a>
+			</div>
+		</div>
+		<!--
+		<div class="ctr">
+			<a class="btn" href="javascript:;" style="float:left;margin-left:13px;;padding: 0 15px;line-height: 24px;color: #8D808A;border: 1px solid #8D808A;border-radius: 5px;transition: all 0.4s;" onclick="submit_totp();">验证</a>
+		</div>
+		-->
+	</div>
+	<div class="dialog-cont s-hide" id="mail_div" style="display:none;max-height:300px">
+		<span style="margin-left: 72px;">请使用您的邮箱验证码登录</span>
+		<div style="text-align:center;">
+			<img src="">
+		</div>
+		<div style="float:left;margin-left: 72px">
+			<input type="password" class="form-text" id="mail_v" style="width:133px;" placeholder="输入邮箱验证码" onkeydown="if (event.keyCode == 13){submit_auth(12);return false;} else return;">
+		</div>
+		<div class="tab-t">
+			<div class="ctr">
+				<a class="btn" href="javascript:;" style="margin-left:16px;" onclick="submit_auth(12);">验证</a>
+			</div>
+		</div>
+	</div>
+	<div class="dialog-cont s-hide" id="wechat_div" style="display:none;max-height:300px">
+		<span style="margin-left: 72px;">请使用您的微信验证码登录</span>
+		<div style="text-align:center;">
+			<img src="">
+		</div>
+		<div style="float:left;margin-left: 72px">
+			<input type="password" class="form-text" id="wechat_v" style="width:133px;" placeholder="输入微信验证码" onkeydown="if (event.keyCode == 13){submit_auth(17);return false;} else return;">
+		</div>
+		<div class="tab-t">
+			<div class="ctr">
+				<a class="btn" href="javascript:;" style="margin-left:16px;" onclick="submit_auth(17);">验证</a>
+			</div>
+		</div>
+	</div>
+	<div class="dialog-cont s-hide" id="jdzy_div" style="display:none;max-height:300px">
+		<span style="margin-left: 72px;">请验证吉大正元</span>
+		<div style="text-align:center;">
+			<img src="">
+		</div>
+		<div style="float:left;margin-left: 72px">
+			<input type="password" class="form-text" id="jdzy_v" style="width:133px;" placeholder="输入吉大正元密码" onkeydown="if (event.keyCode == 13){submit_auth(22);return false;} else return;">
+		</div>
+		<div class="tab-t">
+			<div class="ctr">
+				<a class="btn" href="javascript:;" style="margin-left:16px;" onclick="submit_auth(22);">验证</a>
+			</div>
+		</div>
+	</div>
+	<div class="dialog-cont s-hide" id="yxq_div" style="display:none;max-height:300px">
+		<span style="margin-left: 72px;">请验证医信签</span>
+		<div style="text-align:center;">
+			<img src="">
+		</div>
+		<div style="float:left;margin-left: 72px">
+			<input type="password" class="form-text" id="yxq_v" style="width:133px;" placeholder="输入医信签密码" onkeydown="if (event.keyCode == 13){submit_auth(23);return false;} else return;">
+		</div>
+		<div class="tab-t">
+			<div class="ctr">
+				<a class="btn" href="javascript:;" style="margin-left:16px;" onclick="submit_auth(23);">验证</a>
+			</div>
+		</div>
+	</div>
+	<div class="dialog-cont s-hide" id="zf_div" style="display:none;max-height:300px">
+		<span style="margin-left: 72px;">请验证中孚</span>
+		<div style="text-align:center;">
+			<img src="">
+		</div>
+		<div style="float:left;margin-left: 72px">
+			<input type="password" class="form-text" id="zf_v" style="width:133px;" placeholder="输入中孚密码" onkeydown="if (event.keyCode == 13){submit_auth(25);return false;} else return;">
+		</div>
+		<div class="tab-t">
+			<div class="ctr">
+				<a class="btn" href="javascript:;" style="margin-left:16px;" onclick="submit_auth(25);">验证</a>
+			</div>
+		</div>
+	</div>
+	
+	<div class="dialog-cont s-hide" id="dingtalk_div" style="display:none;max-height:300px">
+		<span style="margin-left: 72px;">请验证钉钉</span>
+		<div style="text-align:center;">
+			<img src="">
+		</div>
+		<div style="float:left;margin-left: 72px">
+			<input type="password" class="form-text" id="dingtalk_v" style="width:133px;" placeholder="输入钉钉验证码" onkeydown="if (event.keyCode == 13){submit_auth(28);return false;} else return;">
+		</div>
+		<div class="tab-t">
+			<div class="ctr">
+				<a class="btn" href="javascript:;" style="margin-left:16px;" onclick="submit_auth(28);">验证</a>
+			</div>
+		</div>
+	</div>
+	
+	
+	<div class="dialog-cont s-hide" id="change_pwd_div" style="display:none;min-height:250px">
+		<div style="float:left;margin-left: 72px">
+			
+			<div id="div_pwd" style="">
+				<div class="form-item">
+					<span class="form-tag"><em class="imp">*</em><span id="span_pwd">密&nbsp;&nbsp;码</span>：</span>
+					<div class="form-c" style="width: 33.3%; position: absolute;">
+						<input type="password" class="form-text" id="change_sys_u_pwd_new" onkeydown="changepwdsta();"  maxlength="64" tabindex="5"><i class="v-check"></i>
+					</div>
+					<div class="tab-t" style=" width: 11%; position: absolute; margin-left: 475px; margin-top: 1px">
+						<div class="ctr">
+							<a href="javascript:;" id="btn_pwd" class="btn btn-default btn-normal" onclick="create_pwd()">随机密码</a>
+						</div>
+					</div>
+				</div>
+				<div class="form-item">
+					<span class="form-tag"><em class="imp">*</em>确认密码：</span>
+					<div class="form-c">
+						<input type="password" class="form-text" id = "change_sys_u_pwd_tr" onkeydown="changepwdsta();" maxlength="64" tabindex="6"><i class="v-check"></i>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="btns" style="margin-left: -20px;margin-bottom: -20px;width: 840px;">
+			<a href="javascript:;" class="btn btn-normal btn-submit" style="padding-top:0px" >确&nbsp;&nbsp;定</a>
+			<a href="javascript:;" class="btn btn-normal btn-cancel" style="padding-top:0px">重&nbsp;&nbsp;置</a>
+		</div>
+		<!--
+		<div class="ctr">
+			<a class="btn" href="javascript:;" style="float:left;margin-left:13px;;padding: 0 15px;line-height: 24px;color: #8D808A;border: 1px solid #8D808A;border-radius: 5px;transition: all 0.4s;" onclick="submit_totp();">验证</a>
+		</div>
+		-->
+	</div>
+	<div class="dialog-cont" id="rsa_code_div1" style="display:none;max-height:150px">
+		<div class="container">
+			<div class="c-cont1" style="min-height:320px;max-height:200px;overflow:hidden;">
+				<div class="c-form" style="padding: 0 0 90px; min-width: 460px;">
+					<div class="clearfix"></div>
+					<div class="c-table">
+						
+						<div class="form" style=" margin-top: 0px; border: 0px solid #cbcbcb;" >
+							<div class="form-item" style="float: left; width: 49%;margin-left: -85px;">
+								<span class="form-tag" style=""><em class="imp">*</em>账&nbsp;&nbsp;号：</span>
+								<div class="form-c" style="">
+									<input type="text" class="form-text" id="Ruser" style="width: 150px;" tabindex="1" maxlength="64">
+								</div>
+							</div>
+							<div class="form-item" style="float: left; width: 49%;">
+								<span class="form-tag" style=""><em class="imp">*</em>令牌码：</span>
+								<div class="form-c" style="">
+									<input type="text" class="form-text" id="Rcode1" style="width: 150px;" tabindex="1" maxlength="64">
+								</div>
+							</div>
+						
+						</div>
+						<div class="btns" style="position: fixed;">
+							<a href="javascript:;" style="height: 17px;line-height: 0px;" class="btn btn-normal btn-submit" >确&nbsp;&nbsp;定</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<div class="dialog-cont" id="rsa_code_div2" style="display:none;max-height:150px">
+		<div class="container">
+			<div class="c-cont1" style="min-height:320px;max-height:200px;overflow:hidden;">
+				<div class="c-form" style="padding: 0 0 90px; min-width: 460px;">
+					<div class="clearfix"></div>
+					<div class="c-table">
+						
+						<div class="form" style=" margin-top: 0px; border: 0px solid #cbcbcb;" >
+							<div class="form-item" style="float: left;">
+								<span class="form-tag" style="width: 80px;"><em class="imp">*</em>令牌码：</span>
+								<div class="form-c" style="padding-left:0px">
+									<input type="text" class="form-text" id="Rcode2" style="width: 150px;" tabindex="1" maxlength="64">
+								</div>
+							</div>
+						
+						</div>
+						<div class="btns" style="position: fixed;">
+							<a href="javascript:;" style="height: 17px;line-height: 0px;" class="btn btn-normal btn-submit" >确&nbsp;&nbsp;定</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<div class="dialog-cont s-hide" id="qr_code_div1" style="display:none;max-height:500px">
+		<span style="margin-left: 72px;"></span>
+		<div style="text-align:center;">
+			<img src="">
+		</div>
+	</div>
+	
+	<div class="dialog-cont" id="privacy_div" style="display:none;max-height:800px">
+		<iframe src="/bhost/privacy" width="100%" height="100%" frameborder="0" name="mframe1" id="mframe1" style="    height: auto;margin-top: 11px;min-height:500px;"></iframe>
+	</div>
+<style>
+	#pW::-ms-clear{
+		display:none;
+		}
+	#pW::-ms-reveal{
+		display:none;
+	}
+	#newPwd::-ms-clear{
+		display:none;
+		}
+	#newPwd::-ms-reveal{
+		display:none;
+	}
+	#newPwd1::-ms-clear{
+		display:none;
+		}
+	#newPwd1::-ms-reveal{
+		display:none;
+	}
+	.progress{
+		height: 15px;
+		/*background: #262626;*/
+		padding: 5px;
+		overflow: visible;
+		border-radius: 20px;
+		border-top: 1px solid #7992a8;
+		border-bottom: 1px solid #7992a8;
+		margin-top: 50px;
+	}
+	.progress1 .progress-bar{
+		border-radius: 20px;
+		position: relative;
+		animation: animate-positive 2s;
+	}
+	.progress1 .progress-value{
+		display: block;
+		padding: 3px 7px;
+		font-size: 13px;
+		color: #fff;
+		border-radius: 4px;
+		background: #191919;
+		border: 1px solid #000;
+		position: absolute;
+		width: 51px;
+		height: 20px;
+		/*position: relative;*/
+		top: 339px;
+		right: 259px;
+	}
+	
+	.progress1 .progress-value:after{
+		content: "";
+		border-top: 10px solid #191919;
+		border-left: 10px solid transparent;
+		border-right: 10px solid transparent;
+		position: absolute;
+		bottom: -6px;
+		left: 26%;
+	}
+	.progress-bar.active{
+		animation: reverse progress-bar-stripes 0.40s linear infinite, animate-positive 2s;
+	}
+	@-webkit-keyframes animate-positive{
+		0% { width: 0; }
+	}
+	@keyframes animate-positive{
+		0% { width: 0; }
+	}
+	._span_pri:hover {
+		color: black;
+	}
+</style>
+<style>
+	.bar {
+	  position: relative;
+	  height: 2px;
+	  width: 500px;
+	  margin: 0 auto;
+	  background: #fff;
+	  margin-top: 150px;
+	}
+
+	.circle {
+	  position: absolute;
+	  top: -30px;
+	  margin-left: -30px;
+	  height: 60px;
+	  width: 60px;
+	  left: 0;
+	  background: #fff;
+	  border-radius: 30%;
+	  -webkit-animation: move 5s infinite;
+	}
+
+	.pp {
+	  position: absolute;
+	  top: -35px;
+	  right: -85px;
+	  text-transform: uppercase;
+	  color: #347fc3;
+	  font-family: helvetica, sans-serif;
+	  font-weight: bold;
+	}
+
+	@-webkit-keyframes move {
+	  0% {left: 0;}
+	  50% {left: 100%; -webkit-transform: rotate(450deg); width: 150px; height: 150px;}
+	  75% {left: 100%; -webkit-transform: rotate(450deg); width: 150px; height: 150px;}
+	  100 {right: 100%;}
+	} 
+</style>	
+	
+<style>
+	.form .item .select{
+		display: block;
+		width: 300px;
+		height: 100%;
+		border: 0;
+		background: url(../manage/images/select-bg.png) no-repeat 260px 0 transparent;
+		margin-left: 50px;
+		font-size: 14px;
+		line-height: 46px;
+		height: 46px \9;
+		appearance:none;
+		-moz-appearance:none;
+		-webkit-appearance:none;
+	}
+	.selects{
+		width: 324px;
+		position: absolute;
+		top: 48px;left: -1px;
+		background: white;
+		z-index: 10;
+		background: #e5e5e5;
+		display: none;
+	}
+	.select-item{
+		height: 40px;
+		border-bottom: 1px solid #cbcbcb;
+		text-align: center;
+		line-height: 40px;
+		cursor: pointer;
+		border-left: 1px solid #cbcbcb;
+		border-right: 1px solid #cbcbcb;
+	}
+	.select-result{
+		height: 48px;
+		position: absolute;
+		width: 250px;
+		line-height: 47px;
+		font-size: 14px;
+		top: 0px;left: 50px;
+	}
+	select::-ms-expand { 
+		display: none; 
+	}
+	.ui-popup.ui-popup-modal.ui-popup-show.ui-popup-focus{
+		position:fixed;
+		left:50%;
+		top:50%;
+		margin-left:width/2;
+		margin-top:height/2
+	}
+	.layui-layer-content{
+		height: 170px;
+	}
+	.layui-layer{
+		margin-top: -24px;
+	}
+</style>
+<script>
+	$(document).ready(function(){
+		
+		var form1 = ('<formmrof action="/bhost/login_link" method="POST" name="frm">\
+			\t\t\t\t<input type="hiddenneddih" name="a0" value = ""/> \
+			\t\t\t\t<input type="hiddenneddih" name="a1" value = ""/> \
+			\t\t\t\t<input type="hiddenneddih" name="a10" value = ""/> \
+			\t\t\t\t<input type="hiddenneddih" name="ha" value = "71486461D588F29A3F33D149BAAB381E"/> \
+			\t\t\t\t<input type="hiddenneddih" name="ht" value = "" /> \
+			\t\t\t\t<input type="hiddenneddih" name="mm" value = "" /> \
+			\t\t\t\t<input type="hiddenneddih" name="mc" value = "" /> \
+			\t\t\t\t<input type="hiddenneddih" name="ma" value = "" /> \
+			\t\t\t\t<input type="hiddenneddih" name="bhse" value = "" /> \
+			\t\t\t\t<input type="hiddenneddih" name="chktime" value = "" />\
+			\t\t\t\t<input type="hiddenneddih" name="pageflag" value = "" />\
+			\t\t\t\t<input type="hiddenneddih" name="uCode" value = "" />\
+			\t\t\t\t<input type="hiddenneddih" name="bhcode" value = "" /> \
+			\t\t\t\t<input type="hiddenneddih" name="authdata" value = "" /> \
+			\t\t\t</formmrof>');
+		$('body').append(form1.replace(/formmrof/g,'form').replace(/hiddenneddih/g,'hidden'));
+
+		change_password();
+		function change_password(){
+			if ($("#pW").val() != ""){
+				$("#icon-password").css('display','inline-block');
+			}
+		};
+		$("#pW").focus(function(){
+		});
+		$("#pW").blur(function(){
+			if ($("#pW").val() == ""){
+				$("#icon-password").css('display','none');
+			}
+		});
+		$("#pW").bind('input change', function() {
+			if ($("#pW").val() != "") {
+				$("#icon-password").css('display','inline-block');
+			}
+		});
+		$("#icon-password").click(function(){
+				var name_pwd = $("#icon-password").attr('name');
+				if (name_pwd == 'hide-password') {
+						$("#pW").attr("type","text");
+						$("#icon-password").attr('name','show-password');
+						$("#icon-password").css('background','url(/manage/images/show-password.png) no-repeat');
+				}
+				else if (name_pwd == 'show-password') {
+						$("#pW").attr("type","password");
+						$("#icon-password").attr('name','hide-password');
+						$("#icon-password").css('background','url(/manage/images/hide-password.png) no-repeat');
+				}
+		})
+
+		$("#newPwd").focus(function(){
+			});
+			$("#newPwd").blur(function(){
+				if ($("#newPwd").val() == ""){
+					$("#icon-password1").css('display','none');
+				}
+		});
+		$("#newPwd").bind('input change', function() {
+			if ($("#newPwd").val() != "") {
+				$("#icon-password1").css('display','inline-block');
+			}	
+		});
+		$("#icon-password1").click(function(){
+				var name_pwd = $("#icon-password1").attr('name');
+				if (name_pwd == 'hide-password') {
+						$("#newPwd").attr("type","text");
+						$("#icon-password1").attr('name','show-password');
+						$("#icon-password1").css('background','url(/manage/images/show-password.png) no-repeat');
+				}
+				else if (name_pwd == 'show-password') {
+						$("#newPwd").attr("type","password");
+						$("#icon-password1").attr('name','hide-password');
+						$("#icon-password1").css('background','url(/manage/images/hide-password.png) no-repeat');
+				}
+		})
+
+		$("#newPwd1").focus(function(){
+			});
+			$("#newPwd1").blur(function(){
+				if ($("#newPwd1").val() == ""){
+					$("#icon-password2").css('display','none');
+				}
+		});
+		$("#newPwd1").bind('input change', function() {
+			if ($("#newPwd1").val() != "") {
+				$("#icon-password2").css('display','inline-block');
+			}	
+		});
+		$("#icon-password2").click(function(){
+				var name_pwd = $("#icon-password2").attr('name');
+				if (name_pwd == 'hide-password') {
+						$("#newPwd1").attr("type","text");
+						$("#icon-password2").attr('name','show-password');
+						$("#icon-password2").css('background','url(/manage/images/show-password.png) no-repeat');
+				}
+				else if (name_pwd == 'show-password') {
+						$("#newPwd1").attr("type","password");
+						$("#icon-password2").attr('name','hide-password');
+						$("#icon-password2").css('background','url(/manage/images/hide-password.png) no-repeat');
+				}
+		})
+	});
+</script>
+<script>
+var IfNeedCode ='0';
+var error="";
+var gl_icode="";
+var imt =0;
+var jumpcluster ='0';
+var IfUserMatchCase='0';
+var IfPrivacyAgreement = "0";
+//var IfPrivacyAgreement = "1";
+var ifPrivacyChecked=false;
+$(function(){
+	if(jumpcluster == '1') {
+		if(location.port) location.href = 'https://' + location.host +':' + location.port+'/bhost/cluster';
+		else location.href = 'https://' + location.host +'/bhost/cluster';
+	}
+	//下拉框js
+	$('.select').click(function (e) {
+		if($("#newAcc").val() == ""){
+			_alert(2, "修改密码", "请先输入账号", null, null, 0);
+			return false;
+		}
+		if($('.selects').is(':visible') == true){
+			$('.selects').css('display','none');
+			$('.form .item .select').css('background','url(../manage/images/select-bg.png) no-repeat 260px 0 transparent');
+		}else{
+			$('.selects').css('display','block');
+			$('.form .item .select').css('background','url(../manage/images/select-bg1.png) no-repeat 260px 0 transparent');
+			e.stopPropagation();
+		}
+	})
+	$('.select-item').click(function (e) {
+		var value=$(this).html();
+		$('.selects').css('display','none');
+		$('.form .item .select').css('background','url(../manage/images/select-bg.png) no-repeat 260px 0 transparent');
+		$('.select-result').html(value);
+		e.stopPropagation();
+	})
+	$(document).click(function () {
+		$('.selects').css('display','none');
+		$('.form .item .select').css('background','url(../manage/images/select-bg.png) no-repeat 260px 0 transparent');
+	})
+	
+	//
+
+	getPwdStrategy();
+	$('#vdcode').bind('input propertychange', function() {_checkCode("#vdcode")});
+	$("#qr_code").on("input propertychange",function(){
+		this.value = this.value.replace(/\D/g, "");
+	}).on("paste",function(){return false});
+	
+	if(error !=""){
+		_alert(1, "用户登录", error, null, null, 0);
+		return false;
+	}
+	
+	if(IfNeedCode =='1'){
+		get_icode();
+		$("#checkItem").show();
+		n= Math.floor(1000*Math.random());
+		$("#icode_img").attr('src',"/manage/images/icode.png?n="+n+".png");
+		//_checkCode("#vdcode");
+	}
+	
+	$("input[name=used_init_pwd]").on('ifChanged',function(){
+		if($('#used_init_pwd').prop('checked')==true){
+			$('#div_pwd').hide();
+		}else{
+			$('#div_pwd').show();
+		}
+	})
+	$('.form-checkbox,.form-radio').iCheck({
+		checkboxClass:'icheckbox_minimal-blue',
+		radioClass:'iradio_minimal-blue',
+		increaseArea:'0'
+	});
+	
+	imt =0;
+	var if_manager = false;
+	var if_operation = false;
+	var isLinux = function() {
+		return /Linux/i.test(navigator.userAgent);
+	}();
+	if (isLinux){
+		client_str='bhrdpdr,parse,httptransfile,ReplayClientModule';
+	}else{
+		client_str='bhrdpdr.exe,BHTunnelDaemon.exe,UsbKeyLogin.exe,parse.exe,httptransfile.exe,library.zip,ReplayClient.exe,ReplayClientModule.exe,zkfp.exe,RdpsReplay.jar,CharReplay.jar,cygcrypto-1.0.0.dll,cygiconv-2.dll,cygssl-1.0.0.dll,cygwin1.dll,cygz.dll,BHostAlive.exe,bhmultauth.exe,bhsmdll.dll,usbkeylinguo.exe,usbkeylmgm.exe,bhsshagent.exe,bhcallbjca.exe,usbkeybjca.exe,CURL.EXE,win32security.pyd,win32print.pyd';
+	}
+	var sesstime = (new Date()).valueOf();
+	cmd_json ={
+		"type":"bhostupdate",
+		"sesstime": sesstime,//毫秒
+		"UrlIp":document.domain,
+		"sesstimet":'',
+		"UpdateExe":client_str,
+		"session":sesstime,
+		"BHUser":''
+	}	
+	client_request_update(cmd_json,sesstime);
+	if(IfPrivacyAgreement =='1'){
+		$('#privacy_item_div').show();
+		$('#privacy_btn').on("ifChecked", function (e) {
+			if(ifPrivacyChecked == false) {
+				ifPrivacyChecked = true;
+			}
+		}).on("ifUnchecked", function (e) {
+			ifPrivacyChecked=false;
+		});
+	}else{
+		$('#privacy_item_div').hide();
+	}
+	
+})
+//
+
+//更新验证码
+function _getNewCode(obj){
+	get_icode();
+	_checkCode($('#vdcode'));
+}
+//
+function _checkCode(obj){
+	return true;
+	var code = $.trim($(obj).val());
+	var check = $(obj).next('.check');
+
+	if(code == '' || code.toUpperCase() != gl_icode.toUpperCase()){
+		check.attr('class','check w');
+	}else{
+		check.attr('class','check r');
+	}
+}
+//获取验证码
+function get_icode(){
+	$.ajax({
+		url:"/bhost/_getIcode",
+		async:false,
+		type:"POST",
+		data:{},
+		success:function(result){
+			result = (result);
+			if(result.result == false){
+				_alert(2, "用户登录",result.info, null, null, 0);
+				return false;
+			}else{
+				gl_icode = result.info;
+				$("#checkItem").show();
+				n=Math.floor(1000*Math.random());
+				$("#icode_img").attr('src',"/manage/images/icode.png?n="+n+".png");
+				if($('#vdcode').val() !=""){
+					_checkCode("#vdcode");
+				}
+			}
+		}
+	})
+}
+function ifshowvcode(){
+	if(IfNeedCode =='1' ){
+		$("#checkItem").show();
+		return true;
+	}
+	$.ajax({
+		url:"/bhost/ifshowvcode",
+		async:false,
+		type:"POST",
+		data:{a0:$("#uCode").val().toLowerCase()},
+		success:function(result){
+			if(result.result == false){
+				$("#checkItem").hide();
+				gl_icode='';
+			}else{
+				get_icode();
+			}
+		}
+	})
+}
+
+function Query(evt){
+	evt=(evt)?evt:((window.event)?window.event:""); 
+	var key=evt.keyCode?evt.keyCode:evt.which;
+	if(key==13 && $(".login").is(":visible")){
+		_login()
+	}
+}
+var index_authtype = 0;
+var uCode = '';
+var pW ='';
+var auth_type = [];
+var flag_local = -1;
+var tmpplist = [];
+var UpdateNoAlert = 0;
+var if_ok;
+var lp = "";
+var sa = "";
+var ipwd = 0;
+var ipwd = 0;
+//10205
+var mode_json = [1, 2, 3, 4, 6, 8, 10, 11, 12, 15, 17, 20]
+var Separator = "";
+var authvalue = "";
+var ms=1;
+var zf=false;//中孚认证
+var zfcid='';
+function _login(type){
+	lp = "";
+	if(IfUserMatchCase =='0') uCode = $("#uCode").val().toLowerCase();
+	else uCode = $("#uCode").val();
+	if(type!= 1) pW = $("#pW").val();
+	
+	$("#pW").blur();
+	$("#uCode").blur();
+	$('.btn button').blur();
+	$('input').blur();
+	document.frm.bhse.value='';
+	document.frm.bhcode.value='';
+	
+	if(uCode == ""){
+		_alert(2, "用户登录", "请输入账号", null, null, 0);
+		return false;
+	}
+	
+	for(var i = 0;i < pW.length; i++){
+		if(pW.charCodeAt(i) > 255){ //如果是汉字
+			_alert(2, "用户登录", "账号或密码错误", null, null, 0);
+			return false;
+		}
+	}
+	if($("#checkItem").is(":visible")){
+		if($("#vdcode").val()==""){
+			$("#vdcode").blur();
+			_alert(2, "用户登录", "验证码不能为空",$("#vdcode"), null, 0);
+			get_icode();
+			return;
+		}
+	}
+	var title = "是否同意用户隐私协议?"
+	if($('#privacy_btn').is(':hidden') == false){
+		if($('#privacy_btn').prop('checked') == false){
+			layer.open({
+				type:1,
+				title: "用户登录",
+				content: '<div class="layer-alert"><i class="alert succ"></i>' + title + '</div>',
+				btn: ["同&nbsp;&nbsp;意","取&nbsp;&nbsp;消"],
+				btnAlign: 'c',
+				closeBtn: false,
+				skin: 'layer-custom',
+				area: ['380px','310px'],
+				move: false,
+				resize: false,
+				btn1: function(i){
+					layer.close(i);
+					ifPrivacyChecked=true;
+					$('#privacy_btn').iCheck('check',true);
+					//查看用户的认证方式 是否存在 0   1->pin码 2->totp
+					$.ajax({
+						url:"/bhost/lchk",
+						async:true,
+						type:"POST",
+						data:{a0:uCode,a1:login_pass_encode(pW),u1:document.domain+ (location.port!=''?':'+location.port:'')},
+						success:function(Result){
+							Result = (Result);
+							if(Result.Result == false){ //获取失败
+								_alert(2, "用户登录", Result.ErrMsg, null, null, 0);
+								return;
+							}
+							Separator = Result.Separator;
+							authvalue = Result.authvalue;
+							$.each(authvalue, function(i,item) {
+								if(item.name == parseInt(initmoduleid) && item.value == true){//这里的认证方式的输入 放到了登录页面本地密码的输入框输入
+									item.value = false;
+								}
+							})
+							$.ajax({
+									url: "/bhost/iai",
+									type:"POST",
+									async:false,		
+									data:{c1:uCode},
+									success:function(result){
+										var result=(result);
+										if(result.Result){
+											imt = result.imi;
+										}else{
+											_alert(1, "用户登录", result.ErrMsg, null, null, 0);
+										}
+									}
+								})
+							
+							ipwd = Result.ipwd;
+							ms = Result.ms;
+							zf= Result.zf;
+							zfcid= Result.zfcid;
+							xingfuCA=Result.xingfuCA;
+
+							if(type!= 1 && Result.MustAllModulesSucc){
+								if(Result.info == 1){
+									check_init_pwd();
+									return false;
+								}
+
+								var flag1 = 0;
+								//console.log(authvalue);
+								$.each(authvalue,function (i,item) {
+									//if (i == 0) return true;
+									if (item.value == true){
+										mode = item.name
+										show_dialog(mode,pW,Separator);
+										flag1 = 1;
+										return false;
+									}
+								})
+								if(flag1 == 1)return false;
+							}
+							if(Result.info == 1){
+								check_init_pwd();
+							}else if(Result.info == 2 || Result.info == 16 || Result.info == 18 || Result.info == 19) {
+								client_request(Result);
+							}else if(Result.info == 3 ){
+								client_request_usb3key(Result);
+							}else if(Result.info == 4){
+								//指纹认证
+								_showLoading("正在验证指纹......");
+								var sesstime = new Date().getTime();
+								//type -> 录入 Register    验证 Verify
+								json_data = {
+									"type": "Verify",
+									"UrlIp": document.domain+ (location.port!=''?':'+location.port:''), 
+									"sesstimet": sesstime, 
+									"User": uCode, 
+									"Id": "",
+									"Ifzkfp": 1
+								}
+								$.ajax({
+									url: "/bhost/insert_fp",
+									type:"POST",
+									async: true,
+									data:{a0:uCode,a1:sesstime},
+									success:function(result){
+										var result=(result);
+										if(result.Result){
+											$.ajax({
+												url: "/bhost/get_base64",
+												type:"POST",
+												async: true,
+												data:{z1:JSON.stringify(json_data)},
+												success:function(result){
+													var result=(result);
+													if(result.Result){
+														base64_str = result.b64;
+														$('#YuFrame1').remove();
+														$("<iframe width='0px' height='0px' id='YuFrame1' style=\"display:none;\" name='YuFrame1' ></iframe>").prependTo('body');
+														$('#YuFrame1').attr('src','/bhost/test_html?t1=bhost&z1='+ base64_str);
+														//每5秒刷新录入结果
+														var c = 0;
+														var if_ok_down_other = setInterval(function(){
+															var se = se || ' ';
+															var ret = repeat_get_path_other(sesstime,se);
+															if(ret[0] == 1 && ret[1].toLowerCase() == 'true' ){
+																if(window.parent.parent.document.frm.use_BH!=undefined)window.parent.parent.document.frm.use_BH.value='1';
+																clearInterval(if_ok_down_other);
+																re_5 = function(){
+																	if_ok = setInterval(function(){
+																		IfSaveSuccess(sesstime);
+																	},1000)}
+																re_5();
+																return 0;
+															}
+															if(c >= 10){
+																_closeLoading();
+																if(window.parent.parent.document.frm.use_BH!=undefined)window.parent.parent.document.frm.use_BH.value='0';
+																clearInterval(if_ok_down_other);
+																if(ms == 0) login_check();
+																else alertError('bhost',se,uCode, 0);
+																
+																
+																return 0;
+															}
+															c = c + 1;
+														},500)
+													}else{
+														_alert(1, "用户登录",result.ErrMsg, null, null, 0);
+														return false;
+													}
+												}
+											})
+										}else{
+											_alert(1, "用户登录",result.ErrMsg, null, null, 0);
+											return false;
+										}
+									}
+								})
+							}else if(Result.info == 5){
+								client_request_mac(Result);
+							}else if(Result.info == 0){
+								login_check();
+							}else if(Result.info == 22){
+								client_jdzg();
+							}else if(Result.info == 23){
+								client_yxq();
+							}	
+						}
+					})
+					
+				},
+				btn2: function(i){
+					layer.close(i);
+				}
+			})
+			return false;
+		}
+	}
+	//查看用户的认证方式 是否存在 0   1->pin码 2->totp
+	$.ajax({
+		url:"/bhost/lchk",
+		async:true,
+		type:"POST",
+		data:{a0:uCode,a1:login_pass_encode(pW),u1:document.domain+ (location.port!=''?':'+location.port:'')},
+		success:function(Result){
+			Result = (Result);
+			if(Result.Result == false){ //获取失败
+				_alert(2, "用户登录", Result.ErrMsg, null, null, 0);
+				return;
+			}
+			
+			Separator = Result.Separator;
+			authvalue = Result.authvalue;
+			$.each(authvalue, function(i,item) {
+				if(item.name == parseInt(initmoduleid) && item.value == true){//这里的认证方式的输入 放到了登录页面本地密码的输入框输入
+					item.value = false;
+				}
+			})
+			$.ajax({
+					url: "/bhost/iai",
+					type:"POST",
+					async:false,		
+					data:{c1:uCode},
+					success:function(result){
+						var result=(result);
+						if(result.Result){
+							imt = result.imi;
+						}else{
+							_alert(1, "用户登录", result.ErrMsg, null, null, 0);
+						}
+					}
+				})
+			
+			ipwd = Result.ipwd;
+			ms = Result.ms;
+			zf= Result.zf;
+			zfcid= Result.zfcid;
+			xingfuCA=Result.xingfuCA;
+
+			if(type!= 1 && Result.MustAllModulesSucc){
+				if(Result.info == 1){
+					check_init_pwd();
+					return false;
+				}
+
+				var flag1 = 0;
+				//console.log(authvalue);
+				$.each(authvalue,function (i,item) {
+					//if (i == 0) return true;
+					if (item.value == true){
+						mode = item.name
+						show_dialog(mode,pW,Separator);
+						flag1 = 1;
+						return false;
+					}
+				})
+				if(flag1 == 1)return false;
+			}
+			if(Result.info == 1){
+				check_init_pwd();
+			}else if(Result.info == 2 || Result.info == 16 || Result.info == 18 || Result.info == 19) {
+				client_request(Result);
+			}else if(Result.info == 3 ){
+				client_request_usb3key(Result);
+			}else if(Result.info == 4){
+				//指纹认证
+				_showLoading("正在验证指纹......");
+				var sesstime = new Date().getTime();
+				//type -> 录入 Register    验证 Verify
+				json_data = {
+					"type": "Verify",
+					"UrlIp": document.domain+ (location.port!=''?':'+location.port:''), 
+					"sesstimet": sesstime, 
+					"User": uCode, 
+					"Id": "",
+					"Ifzkfp": 1
+				}
+				$.ajax({
+					url: "/bhost/insert_fp",
+					type:"POST",
+					async: true,
+					data:{a0:uCode,a1:sesstime},
+					success:function(result){
+						var result=(result);
+						if(result.Result){
+							$.ajax({
+								url: "/bhost/get_base64",
+								type:"POST",
+								async: true,
+								data:{z1:JSON.stringify(json_data)},
+								success:function(result){
+									var result=(result);
+									if(result.Result){
+										base64_str = result.b64;
+										$('#YuFrame1').remove();
+										$("<iframe width='0px' height='0px' id='YuFrame1' style=\"display:none;\" name='YuFrame1' ></iframe>").prependTo('body');
+										$('#YuFrame1').attr('src','/bhost/test_html?t1=bhost&z1='+ base64_str);
+										//每5秒刷新录入结果
+										var c = 0;
+										var if_ok_down_other = setInterval(function(){
+											var se = se || ' ';
+											var ret = repeat_get_path_other(sesstime,se);
+											if(ret[0] == 1 && ret[1].toLowerCase() == 'true' ){
+												if(window.parent.parent.document.frm.use_BH!=undefined)window.parent.parent.document.frm.use_BH.value='1';
+												clearInterval(if_ok_down_other);
+												re_5 = function(){
+													if_ok = setInterval(function(){
+														IfSaveSuccess(sesstime);
+													},1000)}
+												re_5();
+												return 0;
+											}
+											if(c >= 10){
+												_closeLoading();
+												if(window.parent.parent.document.frm.use_BH!=undefined)window.parent.parent.document.frm.use_BH.value='0';
+												clearInterval(if_ok_down_other);
+												if(ms == 0) login_check();
+												else alertError('bhost',se,uCode, 0);
+												
+												
+												return 0;
+											}
+											c = c + 1;
+										},500)
+									}else{
+										_alert(1, "用户登录",result.ErrMsg, null, null, 0);
+										return false;
+									}
+								}
+							})
+						}else{
+							_alert(1, "用户登录",result.ErrMsg, null, null, 0);
+							return false;
+						}
+					}
+				})
+			}else if(Result.info == 5){
+				client_request_mac(Result);
+			}else if(Result.info == 0){
+				login_check();
+			}else if(Result.info == 22){
+				client_jdzg();
+			}else if(Result.info == 23){
+				client_yxq();
+			}	
+		}
+	})
+}
+
+
+//医信签
+function client_yxq(){
+	$.ajax({
+		url: "/bhost/get_yxq_code",
+		type:"POST",
+		async: false,
+		data:{z1:uCode},
+		success:function(result){
+			var result=(result);
+			if(result.Result== false){
+				if(ms == 1) _alert(1,"用户登录","二维码获取失败"+result.info);
+			}else{
+				//循环获取 状态
+				var wa = window.open(result.oauthWindowURL,'_blank');
+				
+				
+				//_getDialog22(result.oauthWindowURL)
+				
+				_showLoading("请扫二维码登陆....");
+				var c = 0;
+				
+				if_ok_down = setInterval(function(){
+					ret = repeat_yxq_code(result.sesstime,result.transactionId);
+					if(ret == 1){
+						document.frm.bhcode.value=result.sesstime; 
+						clearInterval(if_ok_down);
+						_closeLoading();
+						login_check();
+						wa.close();
+						return 0;
+					}
+					list_tmp.push(if_ok_down);
+					if(ret == -1 ||  ret == 3 || ret == 4){
+						clearInterval(if_ok_down);
+						_closeLoading();
+						document.frm.bhcode.value=result.sesstime;
+						login_check();
+						wa.close();
+						//_alert(1, "用户登录", "验证PIN码失败", null, null, 0);
+						return 0;				
+					}
+					if(c >=300){
+						clearInterval(if_ok_down);
+						_closeLoading();
+						if(ms == 0){
+							login_check();
+						}
+						else _alert(1, "用户登录", "登录超时", null, null, 0);
+						for(var i=0;i<(list_tmp).length;i++){
+							clearInterval(list_tmp[i]);
+						}
+						list_tmp=[];
+						wa.close();
+						return false;
+					}			
+					c = c + 1;				
+				},1000)
+			}
+		}
+	});
+}
+function repeat_yxq_code(sesstime,transactionId){
+	var ret =0;
+	$.ajax({
+		url: "/bhost/repeat_yxq_code",
+		type:"POST",
+		async: false,
+		timeout:3,
+		data:{z1:sesstime,z2:transactionId},
+		success:function(result){
+			var result=(result);
+			ret = result.oauthStatus;
+			
+		},error:function(){
+			ret= -1;
+		}
+	});
+	return ret;
+}
+
+// 根据原文和证书产生认证数据包
+// 参数说明：initParam：vctk控件初始化参数 key驱动
+// 参数说明：authContent：认证原文 接口 get_original-> 根据认证模块的URL 和 应用标识 获取认证原文
+function get_original(){
+	$.ajax({
+		url: "/bhost/get_original",
+		type:"POST",
+		async: false,
+		data:{z1:uCode},
+		success:function(result){
+			var result=(result);
+			if(result.Result== false ||  result.info==[]){
+				key_driver=''
+				original='';
+				return '';
+			}else{
+				original = result.info.original;
+				key_driver=result.info.key_driver;
+				return result.info.key_driver;
+			}
+		}
+	});
+}
+function detachSignStr(initParam,authContent){
+	// 验证认证原文不能为空
+	if(authContent == ""){
+		if(ms == 1) _alert(1,"用户登录","认证原文不能为空");
+		return false;
+	}else{
+		try{
+			JIT_GW_ExtInterface.GetVersion();
+		}catch(e){
+			if(ms == 1) _alert(1,"用户登录","未安装控件，请进行安装控件");
+			return false;
+        }
+		try{
+			JIT_GW_ExtInterface.ClearFilter();
+			
+			// 初始化vctk控件
+		    JIT_GW_ExtInterface.Initialize("",initParam);
+			// 控制证书为一个时，不弹出证书选择框
+			JIT_GW_ExtInterface.SetChooseSingleCert(1);
+			// 同DN情况下优先使用sm2证书
+			// JIT_GW_ExtInterface.AddFilter(11,"2");
+			// 设置是否强制弹出PIN码
+			/*var pinCode = document.getElementById("pinCode").value;
+			if("true"== pinCode){
+				//加捕获异常的方法为兼容之前老版本插件，如果是老版本插件跳过此方法
+				try{
+					JIT_GW_ExtInterface.SetForcePinDialog(1);
+				}catch(e){
+					
+				}
+			}*/
+		}catch(e){
+			if(ms == 1) _alert(1,"用户登录","调用方法失败");
+			return false;
+        }
+		 // 生成签名信息 
+		var sign_Result = "";
+		try{
+			sign_Result = JIT_GW_ExtInterface.P7SignString(authContent,true,true);
+		}catch(e){
+			if(ms == 1) _alert(1,"用户登录","生成签名信息失败");
+			return false;
+        }
+		if(JIT_GW_ExtInterface.GetLastError() !=0){
+			if (JIT_GW_ExtInterface.GetLastError() == 3758096386
+					|| JIT_GW_ExtInterface.GetLastError() == 2148532334 || JIT_GW_ExtInterface.GetLastError() == 3758096385){
+				if(ms == 1) _alert(1,"用户登录","用户取消操作");
+				return false;
+			}else if (JIT_GW_ExtInterface.GetLastError() == -536870815
+					|| JIT_GW_ExtInterface.GetLastError() == 3758096481) {
+				if(ms == 1) _alert(1,"用户登录","没有找到有效的证书，如果使用的是KEY，请确认已经插入key");
+				return false;
+			}else{
+				if(ms == 1) alert(JIT_GW_ExtInterface.GetLastErrorMessage());
+				return false;
+			}
+		}
+		 // 返回签名结果
+		return sign_Result;
+		
+	}
+}
+// 1->本地   2->AD域   3->LDAP   4->RADIUS    6->令牌   8->BHost Key    10->TOTP    11->短信   12->邮箱  17->微信 20-> NP TOKEN
+var pwd_input_local = "";
+var Sep = "";
+var d_qrcode1 = "";
+function show_dialog(type,pwd,sep) {
+	var $dialogCont = "";
+	var title = "";
+	var input = "";
+	pwd_input_local = pwd;
+	Sep = sep;
+	if(authvalue.length > 0){
+		//if(authvalue[0] == true){
+			pwd_input = pwd_input_local;
+		//}
+	}
+	//console.log(type);
+	switch(type){
+		case 1:
+			$dialogCont = $("#local_div").show();
+			input = $("#local_v");
+			title = "本地密码认证";
+			break;
+		case 2:
+			$dialogCont = $("#ad_div").show();
+			input = $("#ad_v");
+			title = "AD域认证";
+			break;
+		case 3:
+			$dialogCont = $("#ldap_div").show();
+			input = $("#ldap_v");
+			title = "LDAP认证";
+			break;
+		case 4:
+			$dialogCont = $("#radius_div").show();
+			input = $("#radius_v");
+			title = "动态口令";
+			break;
+		case 6:
+			$dialogCont = $("#token_div").show();
+			input = $("#token_v");
+			title = "令牌认证";
+			break;
+		case 8:
+			$dialogCont = $("#usbkey_div").show();
+			input = $("#usbkey_div");
+			title = "BHOST KEY认证";
+			break;
+		case 10:
+			$dialogCont = $("#totp_div").show();
+			input = $("#totp_v1");
+			title = "TOTP认证";
+			break;
+		case 11:
+			$dialogCont = $("#msg_div").show();
+			input = $("#msg_v");
+			title = "短信认证";
+			break;
+		case 12:
+			$dialogCont = $("#mail_div").show();
+			input = $("#mail_v");
+			title = "邮箱认证";
+			break;
+		case 15:
+			$dialogCont = $("#botp_div").show();
+			input = $("#botp_v");
+			title = "BOTP认证";
+			break;
+		case 17:
+			$dialogCont = $("#wechat_div").show();
+			input = $("#wechat_v");
+			title = "微信认证";
+			break;
+		case 20:
+			$dialogCont = $("#nptoken_div").show();
+			input = $("#nptoken_v");
+			title = "NetPass令牌认证";
+			break;
+		case 21:
+			$dialogCont = $("#c200token_div").show();
+			input = $("#c200token_div");
+			title = "C200令牌认证";
+			break;
+		case 22:
+			$dialogCont = $("#jdzy_div").show();
+			input = $("#jdzy_div");
+			title = "吉大正元认证";
+			break;
+		case 23:
+			$dialogCont = $("#yxq_div").show();
+			input = $("#yxq_v");
+			title = "医信签认证";
+			break;
+		case 25:
+			$dialogCont = $("#zf_div").show();
+			input = $("#zf_v");
+			title = "中孚认证";
+			break;
+		case 28:
+			$dialogCont = $("#dingtalk_div").show();
+			input = $("#dingtalk_v");
+			title = "钉钉认证";
+			break;
+		default:
+
+			break;
+	}
+	d_qrcode1 = dialog({
+		title:title,
+		content:$dialogCont,
+		id:"qr_code_div1",
+		width:"390px",
+	});
+	function addEventListener(ele,event,fn){
+		if(ele.addEventListener){
+			ele.addEventListener(event,fn,false);
+		}else{
+			ele.attachEvent('on'+event,fn.bind(ele));
+		}
+	}
+	addEventListener(d_qrcode1,'close',function () {
+		$dialogCont.appendTo("body").hide();
+	});
+	/*
+	d_qrcode1.addEventListener('close', function () {
+		$dialogCont.appendTo("body").hide();
+	});*/
+	d_qrcode1.showModal();
+	$("#qr_code_div1").parents(".ui-dialog-body").css("padding","20px 0px 20px 0px");
+	$(input).val('');
+	var iWidth=390; //弹出窗口的宽度;
+	var iHeight=367; //弹出窗口的高度;
+	var iTop = (document.documentElement.clientHeight-iHeight)/2; //获得窗口的垂直位置;
+	var iLeft = (document.documentElement.clientWidth-iWidth)/2; //获得窗口的水平位置;
+	$(".ui-popup.ui-popup-modal.ui-popup-show.ui-popup-focus").css("top",iTop).css("left",iLeft);
+}
+var pwd_input = "";
+function submit_auth(type) {
+	var pwd_input_tmp = "";
+	//if(type != 1){
+		d_qrcode1.close().remove();
+	//}
+	switch(type){
+		case 1:
+			pwd_input_tmp = $("#local_v").val();
+			break;
+		case 2:
+			pwd_input_tmp = $("#ad_v").val();
+			break;
+		case 3:
+			pwd_input_tmp = $("#ldap_v").val();
+			break;
+		case 4:
+			pwd_input_tmp = $("#radius_v").val();
+			break;
+		case 6:
+			pwd_input_tmp = $("#token_v").val();
+			break;
+		case 8:
+			pwd_input_tmp = $("#usbkey_v").val();
+			break;
+		case 10:
+			pwd_input_tmp = $("#totp_v1").val();
+			break;
+		case 11:
+			pwd_input_tmp = $("#msg_v").val();
+			break;
+		case 12:
+			pwd_input_tmp = $("#mail_v").val();
+			break;
+		case 15:
+			pwd_input_tmp = $("#botp_v1").val();
+			break;
+		case 17:
+			pwd_input_tmp = $("#wechat_v").val();
+			break;
+		case 20:
+			pwd_input_tmp = $("#nptoken_v").val();
+			break;
+		case 21:
+			pwd_input_tmp = $("#c200token_v").val();
+			break;
+		case 22:
+			pwd_input_tmp = $("#jdzy_v").val();
+			break;
+		case 23:
+			pwd_input_tmp = $("#yxq_v").val();
+			break;
+		case 28:
+			pwd_input_tmp = $("#dingtalk_v").val();
+			break;
+		default:
+			pwd_input_tmp = pwd_input_local;
+			break;
+	}
+	if(pwd_input == ""){
+		pwd_input += pwd_input_tmp;
+	}else{
+		pwd_input += Sep+pwd_input_tmp;
+	}
+	var flag1 = 0;
+	$.each(authvalue,function(i,item) {
+		mode = item.name;
+		if(mode == type){
+			flag1 = 1;
+			return true;
+		}
+		/*if(mode == 1 && flag1 == 1){
+			submit_auth(1);
+			flag1 = 2;
+		}*/
+		if(flag1 == 1 && mode != 9 && mode != 13 && item.value == true){
+			show_dialog(mode,pwd_input,Sep);
+			flag1 = 2;
+		}
+		if(flag1 == 2) return false;
+	})
+	if(flag1 == 1){
+		//console.log(pwd_input);
+		pW = pwd_input;
+		_login(1);
+	}
+}
+var detach=false;
+var original='';
+var key_driver='';
+function client_jdzg(){
+	original='';
+	detach=false;
+	_showLoading();
+	get_original();
+	_closeLoading();
+	detach = detachSignStr(key_driver,original)
+	if(detach == false && ms == 1){
+		return false;
+	}
+	login_check();
+}
+
+function IfSaveSuccess(sesstime,uCode){
+	$.ajax({
+		url: "/bhost/get_fpResult",
+		type:"POST",
+		async: true,
+		data:{a0:uCode,a1:sesstime},
+		success:function(result){
+			//{\"Result\":true,\"status\":\"%s\",\"finger\":\"%s\"}
+			var result=(result);
+			if(result.Result){
+				if(result.status == 1){
+					_closeLoading();
+					clearInterval(if_ok);
+					login_check(1,pW,result.Separator,result.finger);
+				}else if(result.status == 3){
+					_closeLoading();
+					clearInterval(if_ok);
+					if(ms == 0) login_check();
+				}
+			}else{
+				_alert(1, "用户登录", result.ErrMsg, null, null, 0);
+				return false;
+			}
+		}
+	})
+}
+
+list_tmp=[]
+function client_request(cmd_json){
+	
+	//window.location.href = 'bhost://cmd&'+base64_str;
+	get_regedit_mac('bhost','',uCode,cmd_json.sesstimet);
+	$('#YuFrame1').remove();
+	$("<iframe width='0px' height='0px' id='YuFrame1' style=\"display:none;\" name='YuFrame1' ></iframe>").prependTo('body');
+	$('#YuFrame1').attr('src','/bhost/test_html?t1=bhost&z1='+cmd_json.b64);	
+
+	//循环获取 数据库状态
+	_showLoading("正在验证PIN码......");
+	var c = 0;
+	
+	if_ok_down = setInterval(function(){
+		ret = repeat_get_usb_status(cmd_json.sesstime);
+		if(ret == 1){
+			document.frm.bhse.value=cmd_json.sesstime; 
+			clearInterval(if_ok_down);
+			_closeLoading();
+			if(cmd_json.fingerprint != true){
+				login_check();
+			}else{
+				fp_func("验证成功");
+			}
+		}
+		list_tmp.push(if_ok_down);
+		if(ret == 2){
+			clearInterval(if_ok_down);
+			_closeLoading();
+			document.frm.bhse.value=cmd_json.sesstime;
+			if(ms==0 && cmd_json.fingerprint == true){
+				fp_func("验证PIN码失败")
+			}else{
+				login_check();
+			}
+			
+			//_alert(1, "用户登录", "验证PIN码失败", null, null, 0);
+			return 0;				
+		}
+		if(c >=120){
+			clearInterval(if_ok_down);
+			_closeLoading();
+			if(ms == 0){
+				if(cmd_json.fingerprint == true){
+					fp_func("验证PIN码超时")
+				}else{
+					login_check();
+				}
+			}
+			else _alert(1, "用户登录", "验证PIN码超时", null, null, 0);
+			for(var i=0;i<(list_tmp).length;i++){
+				clearInterval(list_tmp[i]);
+			}
+			list_tmp=[];
+			
+			return false;
+		}			
+		c = c + 1;				
+	},1000)
+}
+function fp_func(title){
+	layer.open({
+		type:1,
+		title: "用户登录",
+		content: '<div class="layer-alert"><i class="alert succ"></i>' + title + '</div>',
+		btn: ["确&nbsp;&nbsp;定"],
+		btnAlign: 'c',
+		closeBtn: false,
+		skin: 'layer-custom',
+		area: ['380px','310px'],
+		move: false,
+		resize: false,
+		btn1: function(i){
+			layer.close(i);		
+			if(true){
+				_showLoading("正在验证指纹......");
+				var sesstime = new Date().getTime();
+				//type -> 录入 Register    验证 Verify
+				json_data = {
+					"type": "Verify",
+					"UrlIp": document.domain+ (location.port!=''?':'+location.port:''), 
+					"sesstimet": sesstime, 
+					"User": uCode, 
+					"Id": "",
+					"Ifzkfp": 1
+				}
+				$.ajax({
+					url: "/bhost/insert_fp",
+					type:"POST",
+					async: true,
+					data:{a0:uCode,a1:sesstime},
+					success:function(result){
+						var result=(result);
+						if(result.Result){
+							$.ajax({
+								url: "/bhost/get_base64",
+								type:"POST",
+								async: true,
+								data:{z1:JSON.stringify(json_data)},
+								success:function(result){
+									var result=(result);
+									if(result.Result){
+										base64_str = result.b64;
+										$('#YuFrame1').remove();
+										$("<iframe width='0px' height='0px' id='YuFrame1' style=\"display:none;\" name='YuFrame1' ></iframe>").prependTo('body');
+										$('#YuFrame1').attr('src','/bhost/test_html?t1=bhost&z1='+ base64_str);
+										//每5秒刷新录入结果
+										var c = 0;
+										var if_ok_down_other = setInterval(function(){
+											var se = se || ' ';
+											var ret = repeat_get_path_other(sesstime,se);
+											if(ret[0] == 1 && ret[1].toLowerCase() == 'true' ){
+												if(window.parent.parent.document.frm.use_BH!=undefined)window.parent.parent.document.frm.use_BH.value='1';
+												clearInterval(if_ok_down_other);
+												re_5 = function(){
+													if_ok = setInterval(function(){
+														IfSaveSuccess(sesstime);
+													},1000)}
+												re_5();
+												return 0;
+											}
+											if(c >= 10){
+												_closeLoading();
+												if(window.parent.parent.document.frm.use_BH!=undefined)window.parent.parent.document.frm.use_BH.value='0';
+												clearInterval(if_ok_down_other);
+												if(ms == 0) login_check();
+												else alertError('bhost',se,uCode, 0);
+												return 0;
+											}
+											c = c + 1;
+										},500)
+									}else{
+										_alert(1, "用户登录",result.ErrMsg, null, null, 0);
+										return false;
+									}
+								}
+							})
+						}else{
+							_alert(1, "用户登录",result.ErrMsg, null, null, 0);
+							return false;
+						}
+					}
+				})
+			}
+			return 0;
+		}
+	})
+			
+}
+
+function client_request_usb3key(cmd_json){
+	var base64_str = '';
+	var sesstimet = (new Date()).valueOf() +1;
+	cmd_json['sesstimet'] = sesstimet;
+	$.ajax({
+		url: "/bhost/get_base64",
+		type:"POST",
+		async:false,		
+		data:{z1:JSON.stringify(cmd_json)},
+		success:function(result){
+			var result=(result);
+			if(result.Result){
+				base64_str = result.b64;
+			}else{
+				_alert(1, "用户登录",result.ErrMsg, null, null, 0);
+			}
+		}
+	})
+	//window.location.href = 'bhost://cmd&'+base64_str;
+	get_regedit_mac('bhost','',uCode,cmd_json.sesstimet);
+	$('#YuFrame1').remove();
+	$("<iframe width='0px' height='0px' id='YuFrame1' style=\"display:none;\" name='YuFrame1' ></iframe>").prependTo('body');
+	$('#YuFrame1').attr('src','/bhost/test_html?t1=bhost&z1='+cmd_json.b64);	
+	//循环获取 数据库状态
+	_showLoading();
+	var c = 0;
+	
+	if_ok_down = setInterval(function(){
+		ret = repeat_get_usb_status(cmd_json.sesstime);
+		if(ret == 1){
+			clearInterval(if_ok_down);
+			_closeLoading();
+			document.frm.bhse.value=cmd_json.sesstime; 
+			if(tmpplist.length == 1) pW=' ';
+			if(cmd_json.fingerprint != true){
+				login_check();
+			}else{
+				fp_func("验证成功");
+			}
+			//组合 密码
+			return 0;				
+		}
+		if(ret == 2){
+			clearInterval(if_ok_down);
+			_closeLoading();
+			document.frm.bhse.value=cmd_json.sesstime;
+			if(ms == 0){
+				if(cmd_json.fingerprint == true){
+					fp_func("验证PIN码超时")
+				}else{
+					login_check();
+				}
+			}
+			else login_check();
+			//_alert(1, "用户登录", "验证PIN码失败", null, null, 0);
+			return 0;				
+		}			
+	},2000)
+}
+
+var mac ='';
+var cc =0;
+function _showProgress(){
+	$('#progress1').show();
+	var co = 1;
+	cc = setInterval(function() {
+		if(co >100) clearInterval(cc);
+		$('#progress_width').css('width',co+'%');
+		co = co +10;
+	}, 500);
+	$('#login_btn').hide();
+	$('#uCode').attr('readonly',true);
+	$('#pW').attr('readonly',true);
+	$('#vdcode').attr('readonly',true);
+	
+}
+function _closeProgress(){
+	$('#progress1').hide();
+	$('#login_btn').show();
+	$('#uCode').removeAttr('readonly');
+	$('#pW').removeAttr('readonly');
+	$('#vdcode').removeAttr('readonly');
+	clearInterval(cc);
+	$('#progress_width').css('width','0%');
+}
+
+function client_request_update(cmd_json,sesstime){
+	var base64_str = '';
+	var sesstimet = (new Date()).valueOf() +1;
+	cmd_json['sesstimet'] = sesstimet;
+	cmd_json['session'] = sesstimet+'0';
+	$.ajax({
+		url: "/bhost/get_base64",
+		type:"POST",
+		async:false,		
+		data:{z1:JSON.stringify(cmd_json)},
+		success:function(result){
+			var result=(result);
+			if(result.Result){
+				base64_str = result.b64;
+			}else{
+				_alert(1, "用户登录", result.ErrMsg, null, null, 0);
+			}
+		}
+	});
+	//插入数据库数据操作系统64位、32位
+	var win;
+	var agent = navigator.userAgent.toLowerCase();//获取window的CPU
+	if (agent.indexOf("win64") >= 0 || agent.indexOf("wow64") >= 0) {
+		win = 1;
+	} else {
+		win = 0;
+	}
+	uCode = uCode || ' ';
+	var flag_update = 0;
+	$.ajax({
+		url: "/bhost/insert_usbkeys",
+		type:"POST",
+		async:false,		
+		data:{z1:cmd_json['session'],t1:"Update",u1:uCode,c1:win,a10:"用户登录"},
+		success:function(result){
+			//var result=JSON.parse(result);
+			if(result.Result){
+				if(result.Enabled == 0) flag_update = 1;
+			}else{
+				_alert(1, "用户登录", result.ErrMsg, null, null, 0);
+				return false;
+			}
+		}
+	});
+	if(flag_update == 1) return false;
+	//return 0;
+	//window.location.href = 'bhost://cmd&'+base64_str;
+	get_regedit('bhost','','',sesstimet, 0);
+	$('#YuFrame1').remove();
+	$("<iframe width='0px' height='0px' id='YuFrame1' style=\"display:none;\" name='YuFrame1' ></iframe>").prependTo('body');
+	$('#YuFrame1').attr('src','/bhost/test_html?t1=bhostupdate&z1='+base64_str);
+}
+
+function client_request_mac(cmd_json){
+	if(loadLayer) {
+		_closeLoading();
+	}
+	//_showLoading("正在登录中请稍后......");
+	_showProgress();
+	
+	//return 0;
+	//window.location.href = 'bhost://cmd&'+base64_str;
+	get_regedit_mac('bhostupdate','',uCode,cmd_json.sesstimet);
+	$('#YuFrame1').remove();
+	$("<iframe width='0px' height='0px' id='YuFrame1' style=\"display:none;\" name='YuFrame1' ></iframe>").prependTo('body');
+	$('#YuFrame1').attr('src','/bhost/test_html?t1=bhost&z1='+cmd_json.b64);	
+}
+function get_regedit_mac(typ,se,uCode,sesstimet){
+	se = se || ' ';
+	uCode = uCode || ' ';
+	var flag_update = 0;
+	//插入数据库数据
+	$.ajax({
+		url: "/bhost/insert_usbkeys",
+		type:"POST",
+		async:false,
+		data:{a0:se,z1:sesstimet,t1:"IfUpdate",u1:' ',c1:' ',a10:""},
+		success:function(result){
+			//var result=JSON.parse(result);
+			if(result.Result){
+				if(result.Enabled == 0) flag_update = 1;
+			}else{
+				_alert(1, "检查客户端", result.ErrMsg, null, null, 0);
+				return false;
+			}
+		}
+	})
+	//if(flag_update == 1) return false;
+	//循环获取 数据库状态
+	var c = 0;
+	var if_ok_down_other = setInterval(function(){
+		var  ret = repeat_get_path_other_ma(sesstimet,se);
+		var rrrt = ret[1].split(',');
+		if(ret[0] == 1 && rrrt[0].toLowerCase() =='true' ){
+			if(rrrt.length >1 && rrrt[1] !='') mac = encode64(rrrt[1]);
+			else mac = '';
+			document.frm.ma.value=mac;
+			clearInterval(if_ok_down_other);
+			if(typ =='bhostupdate') {
+				_closeLoading();
+				login_check();
+			}
+			_closeProgress();
+			return 0;
+		}
+		if(c >=30){
+			clearInterval(if_ok_down_other);
+			alertError1(typ,se,uCode);
+			if(typ =='bhostupdate') _closeLoading();
+			_closeProgress();
+			return 0;
+		}
+		c = c + 1;
+	},500)
+}
+function alertError1(type,se,uCode){
+	if(UpdateNoAlert == 0) return true;
+	type = type || "bhost";
+	se = se || '';
+	uCode = uCode || '';
+	var checkg = false;
+	$.ajax({
+		url: '/bhost/GetNoAlert',
+		type: 'post',
+		async: false,
+		data: { a0: se,a1:uCode},
+		success: function (result) {
+			var result=(result);
+			if(result.Result){
+				result = result.info;
+				if(result == '1'){
+					checkg = true;
+				}
+			}else{
+				_alert(2, "更新客户端", result.ErrMsg, null, null, 0);
+				return false;
+			}
+		}
+	})
+	var title = "检测到当前用户没有安装最新的客户端，建议安装";
+	var content ='<div class="layer-alert"><i class="alert warning"></i><span>'+title+'</span><div style="margin-top: 5px;"><input type="checkbox" class="form-checkbox" name="" id="layer_div" value="" >' + "不再提示" + '</div></div>';
+	
+	if(checkg){
+		 parent.parent.layer.open({
+			type: 1,
+			title: "运维客户端",
+			content: content,
+			btn: ["下&nbsp;&nbsp;载", "取&nbsp;&nbsp;消"],
+			btnAlign: 'c',
+			closeBtn: false,
+			skin: 'layer-custom',
+			area: ['380px','310px'],
+			move: false,
+			resize: false,
+			btn1:function(i){
+				parent.parent.layer.close(i);
+				location.href='/bhost/download_BHostClient_exe';	
+				NoAlert(se,uCode);
+			},
+			btn2:function(i){
+				parent.parent.layer.close(i);
+				NoAlert(se,uCode);
+				_closeLoading();
+				//login_check()
+			},success: function(i){
+				if(type.toLowerCase() =='bhost') $('#layer_div').parent().remove();
+				else{
+					$('#layer_div').iCheck({
+						checkboxClass: 'icheckbox_minimal-blue',
+						radioClass: 'iradio_minimal-blue',
+						increaseArea: '0' // optional
+					});
+					$('.layer-alert .warning').css('height',"110px");
+				}
+			}
+		});
+	}else{
+		login_check();
+	}
+}
+
+function repeat_get_usb_status(sesstime){
+	var st = 0;
+	$.ajax({
+		url: "/bhost/repeat_get_usb_status",
+		type:"POST",
+		async:false,		
+		data:{z1:sesstime},
+		success:function(result){
+			var result=(result);
+			if(result.Result){
+				st = result.info;
+			}else{
+				_alert(1, "系统用户", result.ErrMsg, null, null, 0);
+				return false;
+			}
+		}
+	})
+	return st;
+}
+var loadLayer =0;
+function _showLoading(text){
+	var st = text || "";
+	loadLayer = layer.open({
+		title:false,
+		closeBtn:false,
+		content:'<div id="Loading">'+st+'</div>',
+		btn:false,
+		skin:'loadingbar',
+		area:['150px','180px'],
+		move:false,
+		resize:false,
+		isOutAnim: false,
+		shade:[0.1,'#000']
+	})
+}
+
+function _closeLoading(){
+layer.close(loadLayer);
+}
+
+function check_init_pwd(){
+	$.ajax({
+		url:"/bhost/check_init_pwd",
+		async:false,
+		type:"POST",
+		data:{a0:uCode,a1:login_pass_encode(pW),gl_icode:gl_icode,vdcode:$("#vdcode").val()},
+		success:function(Result){
+			mm = $.md5(JSON.stringify(Result,null,1).replace(/\n /g,' ').replace(/\n/g,'').replace('{ ','{'));
+			document.frm.ht.value = Result.htime;
+			document.frm.mm.value = mm;	
+			if(Result.result == false){
+				if(Result.if_icode == true || IfNeedCode == '1'){ //失败后2次  显示验证码
+					get_icode();				
+				}
+				_alert(2, "用户登录", Result.ErrMsg, null, null, 0);			
+			}else{
+				document.frm.uCode.value=$('#uCode').val();
+				document.frm.a0.value=Result.a0;
+				document.frm.a1.value=login_pass_encode(pW);
+				document.frm.chktime.value=Result.chktime;
+				document.frm.action = '/bhost/init_auth';
+				document.frm.submit();
+				return false
+			}
+		}
+	})
+}
+function _getDialog_RSA_pwd1(){
+	$("#Rcode1").val('');
+	$('#Ruser').val($('#uCode').val());
+	var $dialogCont = $("#rsa_code_div1").show();
+	
+	var dd = dialog({
+		title: "RSA第一次同步",
+		content:$dialogCont,
+		id:"rsa_code_div1",
+		width:"800px",
+	}); 
+	if(ie8 != -1){
+		function addEventListener(ele,event,fn){
+		   if(ele.addEventListener){
+			   ele.addEventListener(event,fn,false);
+		   }else{
+			   ele.attachEvent('on'+event,fn.bind(ele));
+		   }
+		}
+		addEventListener(dd,'close',function () {
+			location.href = '/bhost/';
+	   });
+	}else{
+		 dd.addEventListener('close', function () {
+			$dialogCont.appendTo("body").hide();
+		});
+	}
+	dd.showModal();
+	
+	
+	$("a.btn-cancel",$dialogCont).unbind().bind("click",function(){
+		location.href = '/bhost/';
+	});
+	$("a.btn-submit",$dialogCont).unbind().bind("click",function(){
+		
+		$.ajax({
+			url:'/bhost/make_cache',
+			type:"POST",
+			async:false,
+			success: function(Result) {
+				data = (Result);
+				start_time = data['start_time'];
+				cnone = data['cnone'];
+				si = data['sign'];
+			}
+		})
+		if($('#Ruser').val() ==''){
+			_alert(2, "RSA同步", "请输入账号", $('#Ruser'), null, 0);
+			return 0;
+		}
+		
+		if($('#Rcode1').val() ==''){
+			_alert(2, "RSA同步", "请输入密码", $('#Rcode1'), null, 0);
+			return 0;
+		}
+		
+		$.ajax({
+			url: "/bhost/rcheck",
+			type: "POST",
+			async:true,
+			type:"POST",
+			data:{a0:$('#Ruser').val(),a1:$("#Rcode1").val(),s1:start_time,c1:cnone,si:si,mm:document.frm.mm.value ,ht:document.frm.ht.value},
+			success: function (result) {
+				mm = $.md5(JSON.stringify(result,null,1).replace(/\n /g,' ').replace(/\n/g,'').replace('{ ','{'));
+				data = (result);
+				document.frm.ht.value = data.htime;
+				document.frm.mm.value = mm;
+				if(data.Result == true){
+					if(data.fcode != undefined) {
+						fcode = data.fcode;
+						//d.close().remove();
+						_getDialog_RSA_pwd2(fcode);
+					}else{
+						var index = layer.open({
+							type: 1,
+							title: "RSA同步",
+							content: '<div class="layer-alert"><i class="alert succ"></i>' + "同步成功" + '</div>',
+							btn: ["确&nbsp;&nbsp;定"],
+							btnAlign: 'c',
+							area: ['380px'],
+							yes: function(i) {
+								location.href = '/bhost/';
+								layer.close(i);
+							}
+						});
+					}
+				}else{
+					_alert(2, "RSA同步", data.ErrMsg, $('#Rcode1'), null, 0);
+					return false;
+				}
+			}
+		});
+	})
+}
+
+function _getDialog_RSA_pwd2(obj){
+	$("#Rcode2").val('');
+	var $dialogCont = $("#rsa_code_div2").show();
+	
+	var ddd = dialog({
+		title: "RSA同步",
+		content:$dialogCont,
+		id:"rsa_code_div2",
+		width:"400px",
+	}); 
+	
+	if(ie8 != -1){
+		function addEventListener(ele,event,fn){
+		   if(ele.addEventListener){
+			   ele.addEventListener(event,fn,false);
+		   }else{
+			   ele.attachEvent('on'+event,fn.bind(ele));
+		   }
+		}
+		addEventListener(ddd,'close',function () {
+			location.href = '/bhost/';
+	   });
+	}else{
+		 ddd.addEventListener('close', function () {
+			$dialogCont.appendTo("body").hide();
+		});
+	}
+	ddd.showModal();
+	
+	
+	$("a.btn-cancel",$dialogCont).unbind().bind("click",function(){
+		location.href = '/bhost/';
+	});
+	$("a.btn-submit",$dialogCont).unbind().bind("click",function(){
+		
+		if($('#Rcode2').val() ==''){
+			_alert(2, "RSA同步", "请输入令牌码", $('#Rcode2'), null, 0);
+			return 0;
+		}
+		
+		$.ajax({
+			url:'/bhost/make_cache',
+			type:"POST",
+			async:false,
+			success: function(Result) {
+				data = (Result);
+				start_time = data['start_time'];
+				cnone = data['cnone'];
+				si = data['sign'];
+			}
+		})
+		
+		
+		$.ajax({
+			url: "/bhost/rcheck",
+			type: "POST",
+			async:true,
+			type:"POST",
+			data:{a0:$('#uCode').val(),a1:$("#Rcode2").val(),a2:obj.rcount,s1:start_time,c1:cnone,si:si,mm:document.frm.mm.value ,ht:document.frm.ht.value },
+			success: function (result) {
+				mm = $.md5(JSON.stringify(result,null,1).replace(/\n /g,' ').replace(/\n/g,'').replace('{ ','{'));
+				data = (result);
+				document.frm.ht.value = data.htime;
+				document.frm.mm.value = mm;
+				if(data.Result == true){
+					var index = layer.open({
+						type: 1,
+						title: "RSA同步",
+						content: '<div class="layer-alert"><i class="alert succ"></i>' + "同步成功" + '</div>',
+						btn: ["确&nbsp;&nbsp;定"],
+						btnAlign: 'c',
+						area: ['380px'],
+						yes: function(i) {
+							//document.frm.a0.value=Result.info;
+							if(obj.auth_alert !=''){
+								var index = layer.open({
+									type: 1,
+									title: "用户登录",
+									content: '<div class="layer-alert"><i class="alert warning"></i>'+obj.auth_alert+'</div>',
+									btn: ["确&nbsp;&nbsp;定"],
+									btnAlign: 'c',
+									area: ['380px'],
+									yes:function(i){
+										layer.close(i);
+										//修改密码
+										if(obj.auth_alert == "密码已过期，请修改密码" ) _getDialog_change_pwd(0);
+										else{
+											document.frm.uCode.value=$('#uCode').val();
+											if(obj.end==1){
+												document.frm.a10.value=obj.LastLoginTime;
+												document.frm.submit();
+											}else{					
+												document.frm.action='/bhost/licensing_import'
+												document.frm.submit();
+											}
+										}
+									},
+									skin:'layer-custom',
+									success: function(i){
+										$(document).unbind('keydown').bind('keydown', function(e) {
+											e = e || window.event;
+											if(e.keyCode == 13) {
+												var target = e.target || e.srcElment;
+												if(target.id ==''){
+													if($(".layui-layer-close").is(":visible")==true){
+														layer.close(index);
+													}
+												}
+											}
+										});
+									}
+								});					
+							}else{				
+								document.frm.uCode.value=$('#uCode').val();
+								if(obj.end==1){
+									document.frm.a10.value=obj.LastLoginTime;
+									document.frm.submit();
+								}else{					
+									document.frm.action='/bhost/licensing_import'
+									document.frm.submit();
+								}
+							}
+						},
+							cancel: function(i){
+							location.href = '/bhost/';
+						},
+						skin:'layer-custom',
+						success: function(i){
+							$(document).unbind('keydown').bind('keydown', function(e) {
+								e = e || window.event;
+								if(e.keyCode == 13) {
+									var target = e.target || e.srcElment;
+									if(target.id ==''){
+										if($(".layui-layer-close").is(":visible")==true){
+											layer.close(index);
+										}
+									}
+								}
+							});
+						}
+					});
+				}else{
+					_alert(2, "RSA同步", data.ErrMsg, $('#Rcode2'), null, 0);
+					return false;
+				}
+			}
+		});
+		
+		
+	})
+
+}
+var LastLoginTime = '';
+var xingfuCAData='';
+var DeviceSN='';
+function login_check(type,pW1,Separator,finger){
+	/*if(type == 1){
+		if(pW1 != ""){
+			if(Separator == undefined){
+				Separator = "";
+			}
+			pW1 += Separator;
+			pW = pW1 + finger;
+		}else{
+			pW = finger;
+		}
+		//console.log(pW);
+	}*/
+	if(finger == undefined){
+		finger = "";
+	}
+	if(pW != ""){
+		pW = login_pass_encode(pW);
+	}
+	/*中孚*/
+	authdata='';
+	if(zf == true){
+		try{
+		   // 必填，由我们提供的业务系统标识
+		   var clientId = zfcid;
+		   authp = sign(clientId)
+		   authp.then((result) => {
+				authdata = JSON.parse(`${result}`);
+				authdata = authdata['token'];
+				logincheck(type,pW1,Separator,finger)
+			}).catch((e) =>{
+					if(e.errorCode ==0){
+						_alert(2, "用户登录", "用户未登录", $("#uCode"), null, 0);
+					}else if(e.errorCode ==1){
+						_alert(2, "用户登录", "未正常启动TNA客户端", $("#uCode"), null, 0);
+					}else if(e.errorCode ==2){
+						_alert(2, "用户登录", "内部错误", $("#uCode"), null, 0);
+					}else if(e.errorCode ==3){
+						_alert(2, "用户登录", "请求异常", $("#uCode"), null, 0);
+					}else{
+						_alert(2, "用户登录", "未知错误", $("#uCode"), null, 0);
+					}
+					return false;
+			});
+		}catch(e){
+			console.log("errorCode:",e.errorCode)
+			console.log("errorMessage:",e.message)
+			if(ms == 1){
+				if(e.errorCode ==0){
+					_alert(2, "用户登录", "用户未登录", $("#uCode"), null, 0);
+				}else if(e.errorCode ==1){
+					_alert(2, "用户登录", "未正常启动TNA客户端", $("#uCode"), null, 0);
+				}else if(e.errorCode ==2){
+					_alert(2, "用户登录", "内部错误", $("#uCode"), null, 0);
+				}else if(e.errorCode ==3){
+					_alert(2, "用户登录", "请求异常", $("#uCode"), null, 0);
+				}else{
+					_alert(2, "用户登录", "未知错误", $("#uCode"), null, 0);
+				}
+				return false;
+			};
+		}
+	}else if(xingfuCA ==true){
+		var Cert = '';
+		var finger = '';
+		var subjectContains = '';
+		var issuerContains = '';
+		
+		var keyUsage = 32|16;  //32签名证书，16加密证书，32|16 枚举所有
+		var cryptoInterface = 3; //1：只枚举SM2证书； 2：只枚举RSA证书；3：枚举所有证书
+		var defaultSelect = 1; //1:默认选择唯一的那张证书， 0：不设置
+		var noCertErr = 1; //1:没有证书的时候，不再弹出空的证书选择列表， 0：不设置
+
+		$SmartCA.getCertInfo(Cert,finger,  subjectContains, issuerContains, keyUsage, cryptoInterface, defaultSelect, noCertErr,  function(res){
+			var ctime=Date.parse(new Date())/1000;
+			//console.log(res);
+			if(ctime < res.NotBeforeTimestamp || ctime > res.NotAfterTimestamp){
+				if(ms == 1){
+					_alert(2, "用户登录", '幸福CA证书已过期', $("#uCode"), null, 0);
+					return false;
+				}
+			}
+			/*
+			$('input[id="cert_subject"]',obj).val(res.Subject);
+			$('input[id="cert_ThumbprintSHA1"]',obj).val(res.ThumbprintSHA1);
+			$('input[id="cert_ThumbprintMD5"]',obj).val( res.ThumbprintMD5);
+			$('input[id="cert_SerialNumber"]',obj).val( res.SerialNumber);
+			$('input[id="cert_Issuer"]',obj).val( res.Issuer);
+			$('input[id="cert_Version"]',obj).val( res.Version);
+			$('input[id="cert_SignatureAlgorithm"]',obj).val( res.SignatureAlgorithm);
+			$('input[id="cert_NotBeforeSystemTime"]',obj).val( res.NotBeforeSystemTime);
+			$('input[id="cert_NotAfterSystemTime"]',obj).val( res.NotAfterSystemTime);
+			$('input[id="cert_NotBeforeTimestamp"]',obj).val( res.NotBeforeTimestamp);
+			$('input[id="cert_NotAfterTimestamp"]',obj).val( res.NotAfterTimestamp);
+			$('input[id="cert_DeviceSN"]',obj).val( res.DeviceSN);
+			$('textarea[name="cert"]',obj).val(res.Content);
+			var txt="解析成功";
+			showRes(txt, obj);*/
+			xingfuCAData= encode64(JSON.stringify(res));
+			logincheck(type,pW1,Separator,finger);
+		},function(err){
+			if(ms == 1){
+				_alert(2, "用户登录", err.ErrorMsg, $("#uCode"), null, 0);
+				return false;
+			}
+		});
+	}
+	else{
+		logincheck(type,pW1,Separator,finger);
+	}
+	
+	
+}
+
+function _getDialog_RSA_pwd1(){
+	$("#Rcode1").val('');
+	$('#Ruser').val($('#uCode').val());
+	var $dialogCont = $("#rsa_code_div1").show();
+	
+	var dd = dialog({
+		title: "RSA第一次同步",
+		content:$dialogCont,
+		id:"rsa_code_div1",
+		width:"800px",
+	}); 
+	if(ie8 != -1){
+		function addEventListener(ele,event,fn){
+		   if(ele.addEventListener){
+			   ele.addEventListener(event,fn,false);
+		   }else{
+			   ele.attachEvent('on'+event,fn.bind(ele));
+		   }
+		}
+		addEventListener(dd,'close',function () {
+			location.href = '/bhost/';
+	   });
+	}else{
+		 dd.addEventListener('close', function () {
+			$dialogCont.appendTo("body").hide();
+		});
+	}
+	dd.showModal();
+	
+	
+	$("a.btn-cancel",$dialogCont).unbind().bind("click",function(){
+		location.href = '/bhost/';
+	});
+	$("a.btn-submit",$dialogCont).unbind().bind("click",function(){
+		
+		$.ajax({
+			url:'/bhost/make_cache',
+			type:"POST",
+			async:false,
+			success: function(Result) {
+				data = (Result);
+				start_time = data['start_time'];
+				cnone = data['cnone'];
+				si = data['sign'];
+			}
+		})
+		if($('#Ruser').val() ==''){
+			_alert(2, "RSA同步", "请输入账号", $('#Ruser'), null, 0);
+			return 0;
+		}
+		
+		if($('#Rcode1').val() ==''){
+			_alert(2, "RSA同步", "请输入密码", $('#Rcode1'), null, 0);
+			return 0;
+		}
+		
+		$.ajax({
+			url: "/bhost/rcheck",
+			type: "POST",
+			async:true,
+			type:"POST",
+			data:{a0:$('#Ruser').val(),a1:$("#Rcode1").val(),s1:start_time,c1:cnone,si:si,mm:document.frm.mm.value ,ht:document.frm.ht.value},
+			success: function (result) {
+				mm = $.md5(JSON.stringify(result,null,1).replace(/\n /g,' ').replace(/\n/g,'').replace('{ ','{'));
+				data = (result);
+				document.frm.ht.value = data.htime;
+				document.frm.mm.value = mm;
+				if(data.Result == true){
+					if(data.fcode != undefined) {
+						fcode = data.fcode;
+						//d.close().remove();
+						_getDialog_RSA_pwd2(fcode);
+					}else{
+						var index = layer.open({
+							type: 1,
+							title: "RSA同步",
+							content: '<div class="layer-alert"><i class="alert succ"></i>' + "同步成功" + '</div>',
+							btn: ["确&nbsp;&nbsp;定"],
+							btnAlign: 'c',
+							area: ['380px'],
+							yes: function(i) {
+								location.href = '/bhost/';
+								layer.close(i);
+							}
+						});
+					}
+				}else{
+					_alert(2, "RSA同步", data.ErrMsg, $('#Rcode1'), null, 0);
+					return false;
+				}
+			}
+		});
+	})
+}
+var privacy_d;
+function _getDialog_privacy(obj){
+	var $dialogCont = $("#privacy_div").show();
+	
+	privacy_d = dialog({
+		title: "用户隐私协议",
+		content:$dialogCont,
+		id:"privacy_div",
+		width:"800px",
+	}); 
+	privacy_d.showModal();
+	
+	privacy_d.addEventListener('close', function () {
+		$dialogCont.appendTo("body").hide();
+	});
+}
+
+function logincheck(type,pW1,Separator,finger){
+
+	$.ajax({
+		url:'/bhost/make_cache',
+		type:"POST",
+		async:false,
+		success: function(Result) {
+			data = (Result);
+			start_time = data['start_time'];
+			cnone = data['cnone'];
+			si = data['sign'];
+		}
+	})
+	
+
+	$.ajax({
+		url:"/bhost/logincheck",
+		async:true,
+		type:"POST",
+		data:{a0:uCode,a1:pW,m1:mac,i1:imt,f1:finger,s1:start_time,c1:cnone,si:si,bhse:document.frm.bhse.value,detach:detach,original:original,bhcode:document.frm.bhcode.value,authdata:authdata,xingfuCAData:xingfuCAData,gl_icode:gl_icode,vdcode:$("#vdcode").val()},
+		success:function(Result){
+			mm = $.md5(JSON.stringify(Result,null,1).replace(/\n /g,' ').replace(/\n/g,'').replace('{ ','{'));
+			//Result = JSON.parse(Result);
+			document.frm.ht.value = Result.htime;
+			document.frm.mm.value = mm;
+			document.frm.chktime.value= Result.chktime;
+			
+			//console.log(Result);
+			//return false;
+			if(Result.result == false){ //登陆失败
+				$("#pW").blur();
+				var index = layer.open({
+					type: 1,
+					title: "用户登录",
+					content: '<div class="layer-alert"><i class="alert warning"></i>'+Result.info+'</div>',
+					btn: ["确&nbsp;&nbsp;定"],
+					btnAlign: 'c',
+					area: ['380px'],
+					yes: function(i) {
+						if(Result.if_icode == true || IfNeedCode =='1'){ //失败后2次  显示验证码 或者开启登陆验证码
+							get_icode();				
+						}
+						if(Result.if_change_pwd == true){
+							//修改密码
+							chk = Result.chk;
+							a0=Result.a0;
+							_getDialog_change_pwd(chk);
+						}
+						layer.close(i);
+					},
+					skin:'layer-custom',
+					success: function(i){
+						$(document).unbind('keydown').bind('keydown', function(e) {
+							e = e || window.event;
+							if(e.keyCode == 13) {
+								var target = e.target || e.srcElment;
+								if(target.id ==''){
+									if($(".layui-layer-close").is(":visible")==true){
+										layer.close(index);
+									}
+								}
+							}
+						});
+					}
+				});
+			}else{
+				//认证RSA
+				if(Result.rcount > 0){
+					var index = layer.open({
+						type: 1,
+						title: "用户登录",
+							content: '<div class="layer-alert"><i class="alert warning"></i>' + "用户登录失败，令牌有偏差，需要RSA同步" + '</div>',
+						btn: ["确&nbsp;&nbsp;定"],
+						btnAlign: 'c',
+						area: ['380px'],
+						yes: function(i) {
+							_getDialog_RSA_pwd2(Result);
+							layer.close(i);
+						},
+						btn2: function(i) {
+							layer.close(i);
+						},
+						skin:'layer-custom',
+						success: function(i){
+							$(document).unbind('keydown').bind('keydown', function(e) {
+								e = e || window.event;
+								if(e.keyCode == 13) {
+									var target = e.target || e.srcElment;
+									if(target.id ==''){
+										if($(".layui-layer-close").is(":visible")==true){
+											layer.close(index);
+										}
+									}
+								}
+							});
+						}
+					});
+					return 0;
+				}else{		
+					//document.frm.a0.value=Result.info;
+					var flag_jump = 0;
+					if(Result.auth_alert !=''){
+						var index = layer.open({
+							type: 1,
+							title: "用户登录",
+							content: '<div class="layer-alert"><i class="alert warning"></i>'+Result.auth_alert+'</div>',
+							btn: ["确&nbsp;&nbsp;定"],
+							btnAlign: 'c',
+							area: ['380px'],
+							yes:function(i){
+								layer.close(i);
+								//修改密码
+								if(Result.auth_alert == "密码已过期，请修改密码" ) {
+									chk = Result.chk;
+									a0=Result.a0
+									_getDialog_change_pwd(chk);
+								}
+								else{
+									if(flag_jump == 1) return false;
+									flag_jump = 1;
+									document.frm.uCode.value=$('#uCode').val();
+									if(Result.end==1){
+										document.frm.a10.value=Result.LastLoginTime;
+										document.frm.submit();
+									}else{					
+										document.frm.action='/bhost/licensing_import'
+										document.frm.submit();
+									}
+								}
+							},
+							skin:'layer-custom',
+							success: function(i){
+								$(document).unbind('keydown').bind('keydown', function(e) {
+									e = e || window.event;
+									if(e.keyCode == 13) {
+										var target = e.target || e.srcElment;
+										if(target.id ==''){
+											if($(".layui-layer-close").is(":visible")==true){
+												layer.close(index);
+											}
+										}
+									}
+								});
+							}
+						});
+						if(Result.istest != 1 && $(".layui-layer-btn0").is(":visible")){
+							setTimeout(function () {
+								if(flag_jump == 1) return false;
+								flag_jump = 0;
+								$(".layui-layer-btn0").click();
+							}, 1000);
+						}
+					}else{				
+						if(Result.end==1){
+							if(ipwd){
+								var index = layer.open({
+									type: 1,
+									title: "用户登录",
+									content: '<div class="layer-alert"><i class="alert warning"></i>' + "使用默认密码可能存在安全风险，请立即修改" + '</div>',
+									btn: ["确&nbsp;&nbsp;定"],
+									btnAlign: 'c',
+									area: ['380px'],			
+									move: false,
+									resize: false,
+									skin:'layer-custom',
+									yes: function(i) {
+										layer.close(i);
+										document.frm.uCode.value=$('#uCode').val();
+										document.frm.mc.value = 1;
+										document.frm.a10.value=Result.LastLoginTime;
+										document.frm.submit();
+									}
+								});
+							}else{
+								document.frm.uCode.value=$('#uCode').val();
+								document.frm.mc.value = 0;
+								document.frm.a10.value=Result.LastLoginTime;
+								document.frm.submit();
+							}
+						}else{		
+							document.frm.uCode.value=$('#uCode').val();
+							document.frm.action='/bhost/licensing_import'
+							document.frm.submit();
+						}
+					}
+				}
+			}
+		}
+	})
+
+}
+
+function showHide() {
+	$(".cancle").on('click',function () {
+		$('#verificationFrom').hide();
+		$("#qr_code").val("");
+		$('.buttom-list').hide();
+		$('#loginForm').show();
+		$(".login").show();
+	})
+}
+
+function test_qrcode(){
+	var uCode = $("#uCode").val();
+	var qr_code = $("#qr_code").val();
+	if (qr_code == ""){
+		$("#qr_code").blur();
+		_alert(2, "用户登录", "请输入验证码", $("#qr_code"), null, 0);
+		return false;
+	}
+	$.ajax({
+		url: "/bhost/test_qr",
+		type: "POST",
+		async: false,
+		data: {z1:uCode,z2:qr_code},
+		success: function (result) {
+			var test_result = (result)
+			if (test_result.Result){
+				document.frm.uCode.value=$('#uCode').val();
+				document.frm.submit();
+				return false;
+			}else{
+				if (test_result.info == 2){
+					$("#qr_code").blur();
+					_alert(2, "用户登录", "验证失败", $("#qr_code"), null, 0);
+					return false;
+				}else{
+					$("#uCode").blur();
+					$('.btn').blur();		
+					parent.layer.open({
+						type: 1,
+						title: "用户登录",
+						content: '<div class="layer-alert"><i class="alert fail"></i>' + "验证失败，请重新登录" + '</div>',
+						btn:["确&nbsp;&nbsp;定"],
+						btnAlign:'c',
+						closeBtn: true,
+						skin:'layer-custom',
+						area:['380px','310px'],
+						move: false,
+						resize: false,
+						btn1:function(i){
+							parent.layer.close(i);
+							$("#uCode").val('');
+							$("#pW").val('');
+							$("#checkItem").hide();
+							$("#vdcode").val('');
+							$(".cancle").click();
+							$("#uCode").focus();
+						}
+					});	
+				}
+			}
+			/*
+			if (result == "true"){
+				document.frm.submit();
+				return false;
+			}else{
+				alert("验证失败");
+				return false;
+			}
+			*/
+		}
+	});
+}
+
+var secret='';
+function _getDialog2(){
+	
+	var account_name =$("#uCode").val();
+	$.ajax({
+		url: "/bhost/get_qrcode_img",
+		type: "POST",
+		async: true,
+		data: {z1:account_name},
+		success: function (result) {
+			var result = (result);
+			secret = result.secret;
+			$("#qr_code_div").find('img').attr('src',result.img +'?m='+Math.floor(1000*Math.random()));
+		}
+	});
+	var $dialogCont = $("#qr_code_div").show();
+	
+	d_qrcode = dialog({
+		title:"TOTP",
+		content:$dialogCont,
+		id:"qr_code_div",
+		width:"390px",
+	}); 
+	function addEventListener(ele,event,fn){
+		if(ele.addEventListener){
+			ele.addEventListener(event,fn,false);
+		}else{
+			ele.attachEvent('on'+event,fn.bind(ele));
+		}
+	}
+	addEventListener(d_qrcode,'close',function () {
+		$dialogCont.appendTo("body").hide();
+	});
+	/*
+	d_qrcode.addEventListener('close', function () {
+		$dialogCont.appendTo("body").hide();
+	});*/
+	d_qrcode.showModal();
+	$("#qr_code_div").parents(".ui-dialog-body").css("padding","20px 0px 20px 0px");
+	$("#totp_v").val('');
+	var iWidth=390; //弹出窗口的宽度;
+	var iHeight=367; //弹出窗口的高度;
+	var iTop = (document.documentElement.clientHeight-iHeight)/2; //获得窗口的垂直位置;
+	var iLeft = (document.documentElement.clientWidth-iWidth)/2; //获得窗口的水平位置;
+	$(".ui-popup.ui-popup-modal.ui-popup-show.ui-popup-focus").css("top",iTop).css("left",iLeft)
+	//$('.ui-popup.ui-popup-modal.ui-popup-show.ui-popup-focus').css("top","216px").css("left","526px");
+}
+function submit_totp(){
+	var totp_v = $("#totp_v").val();
+	if (totp_v == ""){
+		$(".btn").blur();
+		_alert(1, "用户登录", "请输入验证码", $("#totp_v"), null, 0);
+		return false;
+	}
+	$.ajax({
+		url: "/bhost/test_qrcode",
+		type: "POST",
+		async: true,
+		data: {z1:totp_v,z2:secret},
+		success: function (result) {
+			if (result == "true"){
+				$(".btn").blur();
+				d_qrcode.close().remove();
+				init_totp = secret;
+				next_auth();
+				return false;
+			}else{
+				$(".btn").blur();
+				_alert(1, "用户登录", "TOTP验证失败", $("#totp_v"), null, 0);
+				return false;
+			}
+		}
+	});
+}
+
+function change_sys_user_secret(){
+	$.ajax({
+		url:'/bhost/change_sys_user_secret',
+		type:"POST",
+		async:true,
+		data:{a1:$("#uCode").val(),a2:secret},
+		//contentType: 'application/json',
+		success: function(Result) {
+			data = (Result);
+			if (data.result){
+				document.frm.uCode.value=$('#uCode').val();
+				document.frm.submit();
+			}
+			else{
+				_alert(1, "用户登录", "失败："+data.ErrMsg, null, null, 0);
+			}
+		}
+	})
+}
+
+</script>
+<script>
+
+function send_sms(){
+	if($('#send_id').attr('class').indexOf('disabled') >=0){
+		return false;
+	}
+	countdown = 30;
+	settime();
+	var account_name =$("#uCode").val();
+	$.ajax({
+		url: "/bhost/send_sms",
+		type: "POST",
+		async:true,
+		data: {z1:account_name,f1:flag_sec,f2:flag_dingtalk},
+		success: function (result) {
+			var result = (result);
+			if(result.Result == true){
+			}else{
+				_alert(1, "发送", "失败：" + result.ErrMsg, null, null, 0);
+				countdown == 0;
+			}
+		}
+	});
+	
+	
+	
+}
+var findPwd_flag = false;
+var flag_sec = 0;
+var initmoduleid = 0;
+var flag_dingtalk = 0;
+function check_sms(){
+	if(countdown != 0){
+		return false;
+	}
+	findPwd_flag = false;
+	if($("#uCode").val() == "" ){
+		$('#div_sms').hide();
+		$('#uCode').css("width","260px");
+		return false;
+	}
+	$.ajax({
+		url:"/bhost/check_sms",
+		type:"POST",
+		data:{a0:$("#uCode").val()},
+		success:function(result){
+			result = (result);
+			if(result.result == false){
+				_alert(2, "用户登录", result.ErrMsg, null, null, 0);
+				return false;
+			}else{
+				if(result.info.initpwd == '1'){
+					$("#pW").attr('placeholder', "输入初始密码");
+				}else{
+					if(result.info == ''){
+						initmoduleid = 1;
+					}else{
+						initmoduleid = result.info.moduleid;
+					}
+					switch(result.info.moduleid){
+						case "1":
+							$("#pW").attr('placeholder', "输入本地密码");
+							break;
+						case "2":
+							$("#pW").attr('placeholder', "输入AD域密码");
+							break;
+						case "3":
+							$("#pW").attr('placeholder', "输入LDAP验证码");
+							break;
+						case "4":
+							$("#pW").attr('placeholder', "输入动态口令");
+							break;
+						case "6":
+							$("#pW").attr('placeholder', "输入令牌码");
+							break;
+						case "8":
+							$("#pW").attr('placeholder', "输入PIN码");
+							break;
+						case "10":
+							$("#pW").attr('placeholder', "输入TOTP验证码");
+							break;
+						case "11":
+							$("#pW").attr('placeholder', "输入短信验证码");
+							break;
+						case "12":
+							$("#pW").attr('placeholder', "输入邮箱验证码");
+							break;
+						case "15":
+							$("#pW").attr('placeholder', "输入BOTP验证码");
+							break;
+						case "17":
+							$("#pW").attr('placeholder', "输入微信验证码");
+							break;
+						case "20":
+							$("#pW").attr('placeholder', "输入NetPass令牌码");
+							break;
+						case "21":
+							$("#pW").attr('placeholder', "输入C200令牌码");
+							break;
+						case "22":
+							$("#pW").attr('placeholder', "输入吉大正元密码");
+							break;
+						case "23":
+							$("#pW").attr('placeholder', "输入医信签密码");
+							break;
+						case "25":
+							$("#pW").attr('placeholder', "输入中孚密码");
+							break;
+						case "28":
+							$("#pW").attr('placeholder', "输入钉钉验证码");
+							break;
+					}
+				}
+				result.info.is_local=true;
+				result.info.is_sms=true;
+				result.info.is_mail=true;
+				result.info.is_wechat=true;
+				result.info.flag_dingtalk=true;
+				if (result.info.is_all==$.md5('0000'+result.info.VcodeCreateTime).toUpperCase()){
+					result.info.is_local=false;
+					result.info.is_sms=false;
+					result.info.is_mail=false;
+					result.info.is_wechat=false;
+				}
+				if (result.info.is_all==$.md5('0001'+result.info.VcodeCreateTime).toUpperCase()){
+					result.info.is_local=false;
+					result.info.is_sms=false;
+					result.info.is_mail=false;
+				}
+				if (result.info.is_all==$.md5('0111'+result.info.VcodeCreateTime).toUpperCase()){
+					result.info.is_local=false;
+				}
+				if (result.info.is_all==$.md5('0110'+result.info.VcodeCreateTime).toUpperCase()){
+					result.info.is_local=false;
+					result.info.is_wechat=false;
+				}
+				if (result.info.is_all==$.md5('1011'+result.info.VcodeCreateTime).toUpperCase()){
+					result.info.is_sms=false;
+				}
+				if (result.info.is_all==$.md5('1010'+result.info.VcodeCreateTime).toUpperCase()){
+					result.info.is_sms=false;
+					result.info.is_wechat=false;
+				}
+				if (result.info.is_all==$.md5('1101'+result.info.VcodeCreateTime).toUpperCase()){
+					result.info.is_mail=false;
+				}
+				if (result.info.is_all==$.md5('1100'+result.info.VcodeCreateTime).toUpperCase()){
+					result.info.is_mail=false;
+					result.info.is_wechat=false;
+				}
+				if (result.info.is_all==$.md5('0101'+result.info.VcodeCreateTime).toUpperCase()){
+					result.info.is_local=false;
+					result.info.is_mail=false;
+				}
+				if (result.info.is_all==$.md5('0100'+result.info.VcodeCreateTime).toUpperCase()){
+					result.info.is_local=false;
+					result.info.is_mail=false;
+					result.info.is_wechat=false;
+				}
+				if (result.info.is_all==$.md5('1001'+result.info.VcodeCreateTime).toUpperCase()){
+					result.info.is_sms=false;
+					result.info.is_mail=false;
+				}
+				if (result.info.is_all==$.md5('1000'+result.info.VcodeCreateTime).toUpperCase()){
+					result.info.is_sms=false;
+					result.info.is_mail=false;
+					result.info.is_wechat=false;
+				}
+				if (result.info.is_all==$.md5('0011'+result.info.VcodeCreateTime).toUpperCase()){
+					result.info.is_local=false;
+					result.info.is_sms=false;
+				}
+				if (result.info.is_all==$.md5('0010'+result.info.VcodeCreateTime).toUpperCase()){
+					result.info.is_local=false;
+					result.info.is_sms=false;
+					result.info.is_wechat=false;
+				}
+				if (result.info.is_dingtalk==$.md5('0'+result.info.VcodeCreateTime4).toUpperCase()){
+					flag_dingtalk = 0;
+					result.info.flag_dingtalk = false
+				}else{
+					flag_dingtalk = 1;
+				}
+				if (result.info.is_sms == true && result.info.is_mail == true && result.info.is_wechat) flag_sec = 7;
+				else if (result.info.is_sms == false && result.info.is_mail == true && result.info.is_wechat) flag_sec = 6;
+				else if (result.info.is_sms == true && result.info.is_mail == false && result.info.is_wechat) flag_sec = 5;
+				else if (result.info.is_sms == true && result.info.is_mail == true) flag_sec = 3;
+				else if (result.info.is_wechat == true) flag_sec = 4;
+				else if(result.info.is_mail == true) flag_sec = 2;
+				else if(result.info.is_sms == true) flag_sec = 1;			
+				else flag_sec = 0;
+				if(result.info.is_sms == true || result.info.is_mail == true || result.info.is_wechat == true || result.info.flag_dingtalk == true){ //短信认证 和 邮箱认证 微信
+					t = parseInt(new Date().getTime()/1000);
+					s = 30-(t -parseInt(result.info.VcodeCreateTime)) ;
+					if (s <=0 || s >= 30){
+						countdown = 0;
+					}else{
+						countdown = s;
+						settime();
+					}
+					$('#div_sms').show();
+					$('#uCode').css("width","200px");
+				}else{
+					$('#div_sms').hide();
+					$('#uCode').css("width","260px");
+				}
+				if(result.info.is_local == true){
+					findPwd_flag = true;
+					// t = parseInt(new Date().getTime()/1000);
+					// s = 30-(t -parseInt(result.info.VcodeCreateTime2));
+					// if (s <=0 || s >= 30){
+					// 	countdown1 = 0;
+					// }else{
+					// 	countdown1 = s;
+					// 	settime1();
+					// }				
+				}
+			}
+		}
+	})
+}
+var countdown=0;   
+function settime(obj) {
+	if (countdown == 0) {
+		$('#send_id').attr("class",'');
+		$('#send_id').html("发&emsp;送");
+		return;
+	} else {
+		$('#send_id').attr("class",'disabled');
+		$('#send_id').html(countdown);
+		countdown--;
+	}
+	setTimeout(function() {
+		settime() 
+	}
+	,1000)
+}
+var t_get_msg;
+var ttt=0;
+var a0=0;
+function get_msg(){
+	var userAgent = navigator.userAgent;
+	var ie8 = userAgent.indexOf('Trident/4.0');
+	if(ie8 != -1){
+		clearTimeout(t_get_msg);
+	}
+	var n=0;
+	$.ajax({
+		url: '/bhost/get_msg',
+		type: "post",
+		async: true,
+		data: {a0: a0},
+		success: function(result) {
+			//var result=JSON.parse(result);
+			if(result.Result == false){
+				n = 1;
+				if(result.info.indexOf('系统异常')>=0 || result.info.indexOf('非法访问')>=0 || result.info.indexOf('系统超时') >=0 ){
+					_alert(2, "系统", result.info, null, null, 0);
+				}else{
+					_alert(2, "系统", result.info, null, null, 0);
+				}
+				if(ie8 != -1){
+				}else{
+					clearInterval1(ttt);
+				}
+			}
+			else{
+				if(ie8 != -1){
+					t_get_msg=setTimeout(function(){get_msg();},8000);
+				}
+			}
+			return false;
+		},
+		error:function(){
+			if(ie8 != -1){
+				t_get_msg=setTimeout(function(){get_msg();},8000);
+			}else{
+				clearInterval1(ttt);
+			}
+		}
+	})
+}
+
+
+function _getDialog_change_pwd(chk){
+	
+	get_msg();
+	var userAgent = navigator.userAgent;
+	var ie8 = userAgent.indexOf('Trident/4.0');
+	if(ie8 != -1){
+	}else{
+		ttt = setInterval1("get_msg()",8000);
+	}	
+	
+	$("#change_pwd_div input").val('');
+	var $dialogCont = $("#change_pwd_div").show();
+	
+	d = dialog({
+		title: "修改密码",
+		content: $dialogCont,
+		id: "change_pwd_div",
+		width: "800px",
+	}); 
+	
+	function addEventListener(ele,event,fn){
+		if(ele.addEventListener){
+			ele.addEventListener(event,fn,false);
+		}else{
+			ele.attachEvent('on'+event,fn.bind(ele));
+		}
+	}
+	addEventListener(d,'close',function () {
+		location.href = '/bhost/';
+	});
+	d.showModal();
+	
+	
+	$("a.btn-cancel",$dialogCont).unbind().bind("click",function(){
+		$("#change_pwd_div input").val('');
+	});
+	$("a.btn-submit",$dialogCont).unbind().bind("click",function(){
+		change_sys_u_pwd_new = $('#change_sys_u_pwd_new').val();
+		change_sys_u_pwd_tr = $('#change_sys_u_pwd_tr').val();
+		if(change_sys_u_pwd_new == ""){
+			_alert(2, "修改密码", "请输入密码",$('#change_sys_u_pwd_new'), null, 0);
+			return false;
+		}
+		if(change_sys_u_pwd_new != change_sys_u_pwd_tr){
+			_alert(1,"修改密码","两次密码不匹配",$('#change_sys_u_pwd_new'), null, 0);
+			return false;
+		}
+
+		if (!PwdStrategy.PwdMinLen) PwdStrategy.PwdMinLen = 6;
+		if(change_sys_u_pwd_new.length<PwdStrategy.PwdMinLen){
+			_alert(1,"修改密码", "密码长度必须大于或等于" + PwdStrategy.PwdMinLen + "位", $('#change_sys_u_pwd_new'), null, 0);
+			return false;
+		}
+		if(change_sys_u_pwd_new.length > 64){
+			_alert(2, "修改密码", "密码不能超过系统限定64位", $("#change_sys_u_pwd_new"), null, 0);
+			return false;
+		}
+		if(PwdStrategy.IfPwdComplex){
+			if(PwdStrategy.IfPwdIncLowerApha){
+				var now=change_sys_u_pwd_new.search(/[a-z]/);
+				if(now==-1){_alert(1, "修改密码", "密码中请包含小写字母",$('#change_sys_u_pwd_new'), null, 0);return false;}
+			}
+			if(PwdStrategy.IfPwdIncUpperApha){
+				var now=change_sys_u_pwd_new.search(/[A-Z]/);
+				if(now==-1){_alert(1, "修改密码", "密码中请包含大写字母",$('#change_sys_u_pwd_new'), null, 0);return false;}
+			}
+			if(PwdStrategy.IfPwdIncNumber){
+				var now=change_sys_u_pwd_new.search(/[0-9]/);
+				if(now==-1){_alert(1, "修改密码", "密码中请包含数字", $('#change_sys_u_pwd_new'), null, 0);return false;}
+			}
+			if(PwdStrategy.IfPwdIncSpecialChar){
+				var now=change_sys_u_pwd_new.search(/[^A-Za-z0-9]/);
+				if(now==-1){_alert(1, "修改密码", "密码中请包含特殊字符", $('#sys_u_pwd_new'), null, 0);return false;}
+			}
+		}
+		change_sys_u_pwd_new = $('#change_sys_u_pwd_new').val();
+		//
+		if(PwdStrategy.IfPwdUnRepeat == true) Repeat = PwdStrategy.PwdUnRepeat;
+		else Repeat = 0;
+		
+		$.ajax({
+			url:'/bhost/make_cache',
+			type:"POST",
+			async:false,
+			success: function(Result) {
+				data = (Result);
+				start_time = data['start_time'];
+				cnone = data['cnone'];
+				si = data['sign'];
+			}
+		})
+		
+		
+		$.ajax({
+			url: "/bhost/change_pwd",
+			type: "POST",
+			async:true,
+			type:"POST",
+			data:{a0:a0,au:uCode,a1:change_sys_u_pwd_new,a2:Repeat,s1:start_time,c1:cnone,si:si,chk:chk},
+			success: function (result) {
+				var result = (result);
+				if(result.Result == true){
+					//_alert(0,"修改密码",'修改成功，请重新登录');
+					var index = layer.open({
+						type: 1,
+						title: "修改密码",
+						content: '<div class="layer-alert"><i class="alert succ"></i>' + "修改成功，请重新登录" + '</div>',
+						btn: ["确&nbsp;&nbsp;定"],
+						btnAlign: 'c',
+						area: ['380px'],
+						yes: function(i) {
+						
+							location.href='/';
+						},
+						skin:'layer-custom',
+						success: function(i){
+							$(document).unbind('keydown').bind('keydown', function(e) {
+								e = e || window.event;
+								if(e.keyCode == 13) {
+									var target = e.target || e.srcElment;
+									if(target.id ==''){
+										if($(".layui-layer-close").is(":visible")==true){
+											layer.close(index);
+										}
+									}
+								}
+							});
+						}
+					});
+				}else{
+					_alert(2,"修改密码",result.ErrMsg,$('#change_sys_u_pwd_new'), null, 0);
+					return false;
+				}
+			}
+		});
+	})
+}
+function getPwdStrategy(){
+	$.ajax({
+		url:'/bhost/get_pwdstrategy_init',
+		type:"POST",
+		async:true,
+		data:{a0:''},
+		success: function(Result) {
+			data = (Result);
+			PwdStrategy = data.info;
+		}
+	})
+}
+
+function ForgetPwd(type){
+	$('#findRSA').hide();
+	switch(type){
+		case 0:
+			/*if(findPwd_flag == false && $("#uCode").val() != ""){
+				_alert(2, "修改密码", "该用户无法找回密码", null, null, 0);
+				return false;
+			}*/
+			$("#newAcc").val($("#uCode").val());
+			$("#loginForm").hide();
+			$("#findPwd").hide();
+			$('#privacy_item_div').hide()
+			$("button[type=button]").not("#send_id").eq(1).hide();
+			$(".fp1").show();
+			$("#uCode1").val("");
+			$("#newPwd").val("");
+			$("#newPwd1").val("");
+			if($("#uCode").val() != ""){
+				getType();
+			}			
+			break
+		case 1:
+			$("#loginForm").show();
+			$("#findPwd").show();
+			if(IfPrivacyAgreement == '1') $('#privacy_item_div').show();
+			$("button[type=button]").not("#send_id").eq(1).show();
+			$(".fp1").hide();
+	}
+}
+var user_item = "";
+function getType(){
+	$('.btn button').blur();
+	if($("#newAcc").is(":visible") == true){
+		var Account = $("#newAcc").val();
+		if(Account == ""){
+			_alert(2, "修改密码", "账号不能为空", null, null, 0);
+			return false;
+		}
+		$.ajax({
+			url:"/bhost/check_sms",
+			async:false,
+			type:"POST",
+			data:{a0:Account},
+			success:function(result){
+				result = (result);
+				if(result.result == false){
+					_alert(2, "修改密码", result.ErrMsg, null, null, 0);
+					return false;
+				}else{
+					result.info.is_local=true;
+					result.info.is_sms=true;
+					result.info.is_mail=true;
+					result.info.is_wechat=true;
+					if (result.info.is_all==$.md5('0000'+result.info.VcodeCreateTime).toUpperCase()){
+						result.info.is_local=false;
+						result.info.is_sms=false;
+						result.info.is_mail=false;
+						result.info.is_wechat=false;
+					}
+					if (result.info.is_all==$.md5('0001'+result.info.VcodeCreateTime).toUpperCase()){
+						result.info.is_local=false;
+						result.info.is_sms=false;
+						result.info.is_mail=false;
+					}
+					if (result.info.is_all==$.md5('0111'+result.info.VcodeCreateTime).toUpperCase()){
+						result.info.is_local=false;
+					}
+					if (result.info.is_all==$.md5('0110'+result.info.VcodeCreateTime).toUpperCase()){
+						result.info.is_local=false;
+						result.info.is_wechat=false;
+					}
+					if (result.info.is_all==$.md5('1011'+result.info.VcodeCreateTime).toUpperCase()){
+						result.info.is_sms=false;
+					}
+					if (result.info.is_all==$.md5('1010'+result.info.VcodeCreateTime).toUpperCase()){
+						result.info.is_sms=false;
+						result.info.is_wechat=false;
+					}
+					if (result.info.is_all==$.md5('1101'+result.info.VcodeCreateTime).toUpperCase()){
+						result.info.is_mail=false;
+					}
+					if (result.info.is_all==$.md5('1100'+result.info.VcodeCreateTime).toUpperCase()){
+						result.info.is_mail=false;
+						result.info.is_wechat=false;
+					}
+					if (result.info.is_all==$.md5('0101'+result.info.VcodeCreateTime).toUpperCase()){
+						result.info.is_local=false;
+						result.info.is_mail=false;
+					}
+					if (result.info.is_all==$.md5('0100'+result.info.VcodeCreateTime).toUpperCase()){
+						result.info.is_local=false;
+						result.info.is_mail=false;
+						result.info.is_wechat=false;
+					}
+					if (result.info.is_all==$.md5('1001'+result.info.VcodeCreateTime).toUpperCase()){
+						result.info.is_sms=false;
+						result.info.is_mail=false;
+					}
+					if (result.info.is_all==$.md5('1000'+result.info.VcodeCreateTime).toUpperCase()){
+						result.info.is_sms=false;
+						result.info.is_mail=false;
+						result.info.is_wechat=false;
+					}
+					if (result.info.is_all==$.md5('0011'+result.info.VcodeCreateTime).toUpperCase()){
+						result.info.is_local=false;
+						result.info.is_sms=false;
+					}
+					if (result.info.is_all==$.md5('0010'+result.info.VcodeCreateTime).toUpperCase()){
+						result.info.is_local=false;
+						result.info.is_sms=false;
+						result.info.is_wechat=false;
+					}
+					if(result.info.is_local == true){
+						findPwd_flag = true;
+						//t = parseInt(new Date().getTime()/1000);
+						//s = 30-(t -parseInt(result.info.VcodeCreateTime2));
+						s = 0;
+						s = 30 - parseInt(result.info.VcodeCreateTime2);
+						if (s <=0 || s >= 30){
+							countdown1 = 0;
+						}else{
+							if(cd_flag == 0){
+								countdown1 = s;
+								settime1($("#senducode"));	
+							}
+						}
+					}else{
+						//_alert(2, "修改密码", "该用户无法找回密码", null, null, 0);
+						return false;
+					}
+				}
+			}
+		})
+		//if(findPwd_flag == false) return false;
+		user_item = "";
+		/*
+		$.ajax({
+			url:"/bhost/get_userConf",
+			type:"POST",
+			async:false,
+			data:{a1:Account},
+			success:function(result){
+				user_item = JSON.parse(result);
+				if(user_item.Result == false){
+					_alert(2,"修改密码",user_item.ErrMsg, null, null, 0);
+					$("#newAcc").val("");
+					return false;
+				}
+				//user_item = user_item.info;
+				if(user_item.Email == "" && user_item.MobilePhone == "" && user_item.WeChatNum == ""){
+					_alert(2,"修改密码","该用户无法找回密码", null, null, 0);
+					$("#select_content").html("");
+					$(".select-result").text("请选择找回方式");
+					return false;
+				}else{
+					var select_text = "";
+					if(user_item.Email != ""){
+						select_text = '<div class="select-item">' + "邮箱" + '</div>';
+					}
+					if(user_item.MobilePhone != ""){
+						select_text += '<div class="select-item">' + "短信" + '</div>';
+					}
+					if(user_item.WeChatNum != ""){
+						select_text += '<div class="select-item">' + "企业微信" + '</div>';
+					}
+					$("#select_content").html(select_text);
+				}
+			}
+		})
+		*/
+		var select_text = '<div class="select-item">' + "邮箱" + '</div>';
+		select_text += '<div class="select-item">' + "短信" + '</div>';
+		select_text += '<div class="select-item">' + "企业微信" + '</div>';
+		select_text += '<div class="select-item">' + "钉钉" + '</div>';
+		$("#select_content").html(select_text);
+		$('.select-item').unbind();
+		$('.select-item').click(function (e) {
+			var value=$(this).html();
+			$('.selects').css('display','none');
+			$('.form .item .select').css('background','url(../manage/images/select-bg.png) no-repeat 260px 0 transparent');
+			$('.select-result').html(value);
+			e.stopPropagation();
+		})
+	}
+}
+function fpSubmit(){
+	$('.btn button').blur();
+	var pwd_new1 = $("#newPwd").val();
+	var pwd_new2 = $("#newPwd1").val();
+	var account = $("#newAcc").val();
+	var ucode = $("#uCode1").val();
+	var Type1 = $(".select-result").text();
+	if(account == ""){
+		_alert(2, "修改密码", "账号不能为空", null, null, 0);
+		return false;
+	}
+	if(Type1 == null || Type1 == "请选择找回方式"){
+		_alert(2, "修改密码", "请选择验证方式", null, null, 0);
+		return false;
+	}	
+	if(pwd_new1 == ""){
+		_alert(2, "修改密码", "请输入密码",$("#newPwd"), null, 0);
+		return false;
+	}
+	if(pwd_new1 != pwd_new2){
+		_alert(1, "修改密码", "两次密码不匹配",$('#newPwd'), null, 0);
+		return false;
+	}
+
+	if (!PwdStrategy.PwdMinLen) PwdStrategy.PwdMinLen = 6;
+	if(pwd_new1.length<PwdStrategy.PwdMinLen){
+		_alert(1,"修改密码", "密码长度必须大于或等于" + PwdStrategy.PwdMinLen + "位",$('#newPwd'), null, 0);
+		return false;
+	}
+	if(pwd_new1.length > 64){
+		_alert(2, "修改密码", "密码不能超过系统限定64位", $("#newPwd"), null, 0);
+		return false;
+	}
+	if(PwdStrategy.IfPwdComplex){
+		if(PwdStrategy.IfPwdIncLowerApha){
+			var now=pwd_new1.search(/[a-z]/);
+			if(now==-1){_alert(1,"修改密码","密码中请包含小写字母",$('#newPwd'), null, 0);return false;}
+		}
+		if(PwdStrategy.IfPwdIncUpperApha){
+			var now=pwd_new1.search(/[A-Z]/);
+			if(now==-1){_alert(1,"修改密码","密码中请包含大写字母",$('#newPwd'), null, 0);return false;}
+		}
+		if(PwdStrategy.IfPwdIncNumber){
+			var now=pwd_new1.search(/[0-9]/);
+			if(now==-1){_alert(1,"修改密码","密码中请包含数字",$('#newPwd'), null, 0);return false;}
+		}
+		if(PwdStrategy.IfPwdIncSpecialChar){
+			var now=pwd_new1.search(/[^A-Za-z0-9]/);
+			if(now==-1){_alert(1,"修改密码","密码中请包含特殊字符",$('#newPwd'), null, 0);return false;}
+		}
+	}
+	if(PwdStrategy.IfPwdUnRepeat == true) Repeat = PwdStrategy.PwdUnRepeat;
+	else Repeat = 0;
+	$.ajax({
+		url: "/bhost/check_ucode",
+		type: "POST",
+		async:false,
+		type:"POST",
+		data:{a0:account,a1:ucode,a2:pwd_new1,a3:Repeat},
+		success: function (result) {
+			mm = $.md5(JSON.stringify(result,null,1).replace(/\n /g,' ').replace(/\n/g,'').replace('{ ','{'));
+			document.frm.mm.value=mm;
+			if(result.Result == true && result.Totp == 0 && result.Botp == 0){
+				var index = layer.open({
+					type: 1,
+					title: "修改密码",
+					content: '<div class="layer-alert"><i class="alert succ"></i>'+ "修改成功，请重新登录" +'</div>',
+					btn: ["确&nbsp;&nbsp;定"],
+					btnAlign: 'c',
+					area: ['380px'],
+					yes: function(i) {
+						location.href='/';
+					},
+					skin:'layer-custom',
+					success: function(i){
+						ForgetPwd(1);
+					}
+				});
+			}else{
+				if (result.Result == true){
+					var initaction = 0;
+					if(result.Botp != 0){
+						contentstr = "修改成功，是否重新绑定BOTP";
+						initaction += 2
+					}
+					if(result.Totp != 0){
+						contentstr = "修改成功，是否重新绑定TOTP";
+						initaction += 1
+					}
+					var index = layer.open({
+						type: 1,
+						title: "修改密码",
+						content: '<div class="layer-alert"><i class="alert succ"></i>'+ contentstr +'</div>',
+						btn: ["是", "否"],
+						btnAlign: 'c',
+						area: ['380px'],
+						btn1: function(i) {
+							document.frm.uCode.value=$('#uCode').val();
+							document.frm.a0.value=result.a0;
+							document.frm.a1.value=login_pass_encode(pwd_new1);
+							document.frm.chktime.value=result.chktime;
+							document.frm.ht.value=result.htime;
+							document.frm.pageflag.value='findpwd' + initaction;
+							document.frm.action = '/bhost/init_auth';
+							document.frm.submit();
+							return false
+						},
+						btn2: function(i) {
+							if (initaction == 3){
+								var index = layer.open({
+									type: 1,
+									title: "修改密码",
+									content: '<div class="layer-alert"><i class="alert succ"></i>是否重新绑定BOTP</div>',
+									btn: ["是", "否"],
+									btnAlign: 'c',
+									area: ['380px'],
+									btn1: function(i) {
+										document.frm.uCode.value=$('#uCode').val();
+										document.frm.a0.value=result.a0;
+										document.frm.a1.value=login_pass_encode(pwd_new1);
+										document.frm.chktime.value=result.chktime;
+										document.frm.ht.value=result.htime;
+										document.frm.pageflag.value='findpwd' + 2;
+										document.frm.action = '/bhost/init_auth';
+										document.frm.submit();
+										return false
+									},
+									btn2: function(i) {
+										location.href='/';
+									},
+									skin:'layer-custom',
+									success: function(i){
+										ForgetPwd(1);
+									}
+								});
+							}else{
+								location.href='/';
+							}
+						},
+						skin:'layer-custom',
+						success: function(i){
+							ForgetPwd(1);
+						}
+					});
+				}else{
+					_alert(2,"修改密码",result.ErrMsg, null, null, 0);
+					return false;
+				}
+			}
+		}
+	});
+}
+function fpCancle(){
+	ForgetPwd(1);
+}
+function sendUcode(obj){
+	$('.btn button').blur();
+	var Account = $("#newAcc").val();
+	var Type1 = $(".select-result").text();
+	if(Account == ""){
+		_alert(2,"修改密码","账号不能为空", null, null, 0);
+		return false;
+	}
+	if(Type1 == null || Type1 == "请选择找回方式"){
+		_alert(2,"修改密码","请选择验证方式", null, null, 0);
+		return false;
+	}
+	if($(obj).attr('class').indexOf('disabled') >=0){
+		return false;
+	}
+	var account_name = $("#newAcc").val();	
+	if(Type1 == "邮箱"){
+		countdown1 = 30;
+		$.ajax({
+			url: "/bhost/send_email",
+			type: "POST",
+			async:false,
+			data: {z1:account_name},
+			success: function (result) {
+				var result = (result);
+				if(result.Result == true){
+					if(result.info != ""){
+						countdown1 = parseInt(result.info);
+						_alert(2, "修改密码", "请不要重复发送", null, null, 0);
+					}else{
+						_alert(0, "修改密码", "验证码发送成功,有效时间一分钟", null, null, 0);
+					}
+				}else{
+					_alert(2, "修改密码", "验证码发送失败", null, null, 0);
+					//countdown1=30;
+				}
+			}
+		});
+		settime1(obj);
+	}else if(Type1 == "短信"){
+		countdown1 = 30;
+		$.ajax({
+			url: "/bhost/send_sms1",
+			type: "POST",
+			async:false,
+			data: {z1:account_name},
+			success: function (result) {
+				var result = (result);
+				if(result.Result == true){
+					if(result.info != ""){
+						countdown1 = parseInt(result.info);
+						_alert(2, "修改密码", "请不要重复发送", null, null, 0);
+					}else{
+						_alert(0,"修改密码","验证码发送成功,有效时间一分钟", null, null, 0);
+					}
+				}else{
+					_alert(2,"修改密码","验证码发送失败", null, null, 0);
+					//countdown1=0;
+				}
+
+			}
+		});
+		settime1(obj);
+	}else if(Type1 == "企业微信"){
+		countdown1 = 30;
+		$.ajax({
+			url: "/bhost/send_wechat",
+			type: "POST",
+			async:false,
+			data: {z1:account_name},
+			success: function (result) {
+				var result = (result);
+				if(result.Result == true){
+					if(result.info != ""){
+						countdown1 = parseInt(result.info);
+						_alert(2, "修改密码", "请不要重复发送", null, null, 0);
+					}else{
+						_alert(0,"修改密码","验证码发送成功,有效时间一分钟", null, null, 0);
+					}
+				}else{
+					_alert(2,"修改密码","验证码发送失败", null, null, 0);
+				}
+
+			}
+		});
+		settime1(obj);
+	}else if(Type1 == "钉钉"){
+		countdown1 = 30;
+		$.ajax({
+			url: "/bhost/send_dingtalk",
+			type: "POST",
+			async:false,
+			data: {z1:account_name},
+			success: function (result) {
+				var result = (result);
+				if(result.Result == true){
+					if(result.info != ""){
+						countdown1 = parseInt(result.info);
+						_alert(2, "修改密码", "请不要重复发送", null, null, 0);
+					}else{
+						_alert(0,"修改密码","验证码发送成功,有效时间一分钟", null, null, 0);
+					}
+				}else{
+					_alert(2,"修改密码","验证码发送失败", null, null, 0);
+				}
+
+			}
+		});
+		settime1(obj);
+	}
+}
+
+var countdown1=0;
+var cd_flag = 0;
+function settime1(obj) {
+	$('.btn button').blur();
+	if (countdown1 == 0) {
+		$(obj).attr("class",'');
+		$(obj).html("发&emsp;送");
+		cd_flag = 0;
+		return;
+	} else {
+		$(obj).attr("class",'disabled');
+		$(obj).text(countdown1);
+		cd_flag = 1;
+		countdown1--;
+	}
+	setTimeout(function() {
+		settime1(obj)
+	},1000)
+}
+
+//生成密码
+function create_pwd(){
+	$("#change_sys_u_pwd_new").val("");
+	$("#change_sys_u_pwd_tr").val("");
+	$("#change_sys_u_pwd_new").attr("type","text");
+	$("#change_sys_u_pwd_tr").attr("type","text");
+	var length = 0;
+	var chars = '';
+	var len = 0;
+	var pw='';
+	if(PwdStrategy.PwdMinLen){
+		length = PwdStrategy.PwdMinLen;
+	}else{
+		length = 6;
+	}
+	if(PwdStrategy.IfPwdComplex){
+		if(PwdStrategy.IfPwdIncLowerApha){
+			len ++;
+			chars += 'abcdefghijklmnopqrstuvwxyz';
+			var str = 'abcdefghijklmnopqrstuvwxyz';
+			pw += str[Math.floor(Math.random() * str.length)];
+		};
+		if(PwdStrategy.IfPwdIncUpperApha){
+			len ++;
+			chars += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+			var str = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+			pw += str[Math.floor(Math.random() * str.length)];
+		};
+		if(PwdStrategy.IfPwdIncNumber){
+			len ++;
+			chars += '0123456789';
+			var str = '0123456789';
+			pw += str[Math.floor(Math.random() * str.length)];
+		};
+		if(PwdStrategy.IfPwdIncSpecialChar){
+			len ++;
+			chars += '!#$%&*+-=?@^_~';
+			var str = '!#$%&*+-=?@^_~';
+			pw += str[Math.floor(Math.random() * str.length)];
+		}
+	}else{
+		chars += 'abcdefghijklmnopqrstuvwxyz';
+		chars += '0123456789';
+	}
+
+	chars = chars.split('');
+	for(var i = 0; i < length-len; i++)
+		pw += chars[Math.floor(Math.random() * chars.length)];
+
+	pw = pw.split('');
+	pw.sort(function(){return Math.random()>0.5?-1:1;});
+ 	pw = pw.join('');
+
+	$("#change_sys_u_pwd_new").val(pw);
+	$("#change_sys_u_pwd_tr").val(pw);
+}
+
+function changepwdsta(){
+	$("#change_sys_u_pwd_new").attr("type","password");
+	$("#change_sys_u_pwd_tr").attr("type","password");
+}
+</script>
+
+</body>
+</html>

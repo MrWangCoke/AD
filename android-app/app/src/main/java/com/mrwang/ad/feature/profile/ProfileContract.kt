@@ -1,5 +1,7 @@
 package com.mrwang.ad.feature.profile
 
+import com.mrwang.ad.data.remote.model.TicketResponse
+
 
 data class ProfileState(
     val title: String = "个人",
@@ -18,7 +20,9 @@ data class ProfileState(
     val registerPhone: String = "",
     val registerPassword: String = "",
     val registerConfirmPassword: String = "",
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
+    val isTicketsLoading: Boolean = false,
+    val tickets: List<TicketResponse> = emptyList()
 )
 
 sealed interface ProfileIntent {
@@ -36,6 +40,7 @@ sealed interface ProfileIntent {
     data object OnLoginSubmit : ProfileIntent
     data object OnRegisterSubmit : ProfileIntent
     data object OnLogoutClick : ProfileIntent
+    data object OnRefreshTickets : ProfileIntent
 }
 
 sealed interface ProfileEffect {

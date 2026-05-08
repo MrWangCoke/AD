@@ -17,6 +17,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -96,6 +98,13 @@ private fun HomeScreen(
         Spacer(modifier = Modifier.height(18.dp))
 
         ProblemTypesPanel(
+            backdrop = backdrop,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(18.dp))
+
+        ContactPanel(
             backdrop = backdrop,
             modifier = Modifier.fillMaxWidth()
         )
@@ -203,7 +212,10 @@ private fun ProblemTypesDialog(
                     verticalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
                     campusNetworkProblemTypes.forEach { problem ->
-                        ProblemTypeItem(problem = problem)
+                        ProblemTypeItem(
+                            problem = problem,
+                            backdrop = backdrop
+                        )
                     }
                 }
             }
@@ -212,7 +224,13 @@ private fun ProblemTypesDialog(
 }
 
 @Composable
-private fun ProblemTypeItem(problem: CampusNetworkProblemType) {
+private fun ProblemTypeItem(
+    problem: CampusNetworkProblemType,
+    backdrop: LayerBackdrop
+) {
+    var type3Message by remember { mutableStateOf("") }
+    val context = LocalContext.current
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -252,6 +270,69 @@ private fun ProblemTypeItem(problem: CampusNetworkProblemType) {
                 text = problem.method,
                 color = Color.White.copy(alpha = 0.9f),
                 style = MaterialTheme.typography.bodySmall
+            )
+            if (problem.typeNo == 3) {
+                OutlinedTextField(
+                    value = type3Message,
+                    onValueChange = { type3Message = it },
+                    label = { Text("粘贴短信内容") },
+                    minLines = 3,
+                    maxLines = 5,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        focusedLabelColor = Color.White,
+                        unfocusedLabelColor = Color.White.copy(alpha = 0.75f),
+                        focusedBorderColor = Color.White,
+                        unfocusedBorderColor = Color.White.copy(alpha = 0.45f),
+                        cursorColor = Color.White,
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                GlassButton(
+                    text = "提交",
+                    backdrop = backdrop,
+                    onClick = {
+                        Toast.makeText(context, "类型 3 工单提交功能待接入", Toast.LENGTH_SHORT).show()
+                    },
+                    enabled = type3Message.isNotBlank(),
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ContactPanel(
+    backdrop: LayerBackdrop,
+    modifier: Modifier = Modifier
+) {
+    GlassPanel(
+        backdrop = backdrop,
+        modifier = modifier,
+        cornerRadius = 28.dp
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Text(
+                text = "售后与人工支持",
+                color = Color.White,
+                style = MaterialTheme.typography.titleLarge
+            )
+            Text(
+                text = "售后 QQ 群号：待填写",
+                color = Color.White.copy(alpha = 0.86f),
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Text(
+                text = "工作人员联系方式(WeChat)：WuWude-MrWang",
+                color = Color.White.copy(alpha = 0.86f),
+                style = MaterialTheme.typography.bodyMedium
             )
         }
     }
@@ -294,7 +375,7 @@ private fun ConnectionStepsPanel(
                 index = "2",
                 title = "登录校园网",
                 highlight = "输入学号和密码，账号密码与智慧校园一致，并选择中国电信。",
-                description = "正常连接后会弹出登录通知；如果没有弹出，可以在浏览器输入 10.255.255.154 进入登录页面。"
+                description = "正常连接后会弹出登录通知；如果没有弹出，可以在浏览器输入 10.255.255.156 进入登录页面。"
             )
             ConnectionStepItem(
                 index = "3",
@@ -370,49 +451,49 @@ private val campusNetworkProblemTypes = listOf(
         typeNo = 1,
         name = "连上 wifi 无法上网",
         description = "已连接校园网无线信号，但页面无法正常打开或无法访问外网。",
-        method = "处理方法待补充：用于填写连上 wifi 无法上网的处理说明。"
+        method = "进入登录界面点击注销选择中国电信并登录，显示成功即可正常上网，显示别的可以查看下方处理方法"
     ),
     CampusNetworkProblemType(
         typeNo = 2,
         name = "显示运营商账户欠费",
         description = "登录页面提示运营商账户欠费、套餐到期或余额不足。",
-        method = "处理方法待补充：用于填写运营商账户欠费的处理说明。"
+        method = "去查看话费余额是否正常，若充值后依旧无法上网请联系工作人员。"
     ),
     CampusNetworkProblemType(
         typeNo = 3,
         name = "运营商宽带账户错误或宽带密码错误",
         description = "宽带密码错误需要重置，请按流程获取短信后填写宽带账号和新密码。",
-        method = "用校园卡打 10000 号说重置宽带密码，然后把短信里的宽带账号和新密码填入工单。这个新密码不是校园网登录密码。"
+        method = "用校园卡打 10000 号说重置宽带密码，然后把短信复制粘贴到该文本框并提交。这个新密码不是校园网登录密码。"
     ),
     CampusNetworkProblemType(
         typeNo = 4,
         name = "账户不存在",
         description = "登录页提示账号不存在，需要查看人工补充的处理指引。",
-        method = "处理方法待补充：用于填写账户不存在的处理说明。"
+        method = "去主页填写学号和电信校园卡号码，点击立即绑定。"
     ),
     CampusNetworkProblemType(
         typeNo = 5,
         name = "显示设备终端超出或者终端 IP 已在线",
         description = "旧设备未退出或终端占用异常，查看说明后可直接提交工单处理。",
-        method = "处理方法待补充：用于填写终端超出或终端 IP 已在线的处理说明。"
+        method = "可以打10000号转人工，和客服说清除设备，也可以在掌上安工大查看登录设备并清除无关设备。"
     ),
     CampusNetworkProblemType(
         typeNo = 6,
         name = "显示请联系运营商解绑",
         description = "登录页面明确提示需联系运营商解绑，点击查看说明。",
-        method = "处理方法待补充：用于填写请联系运营商解绑的处理说明。"
+        method = "联系工作人员。"
     ),
     CampusNetworkProblemType(
         typeNo = 7,
         name = "会员领取",
         description = "查看会员领取说明，并按说明领取相关权益。",
-        method = "处理方法待补充：用于补充会员领取入口、领取条件和注意事项。"
+        method = "下载翼支付，在权益处领取，部分套餐无会员权益"
     ),
     CampusNetworkProblemType(
         typeNo = 8,
         name = "其它问题或者未解决",
         description = "未命中以上场景时，可先查看补充说明。",
-        method = "处理方法待补充：用于填写其它问题或者未解决的处理说明。"
+        method = "请联系工作人员"
     )
 )
 
@@ -465,7 +546,8 @@ private fun NewUserBindPanel(
 
             if (state.boundStudentId.isNotBlank() && state.boundPhone.isNotBlank()) {
                 Text(
-                    text = "已绑定：${state.boundStudentId} / ${state.boundPhone}",
+                    text = "工单已提交：${state.boundStudentId} / ${state.boundPhone}"
+                            + state.latestTicketNo.ifBlank { "" }.let { if (it.isBlank()) "" else " / $it" },
                     color = Color.White.copy(alpha = 0.86f),
                     style = MaterialTheme.typography.bodyMedium
                 )
