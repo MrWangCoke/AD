@@ -2,6 +2,7 @@ package com.mrwang.ad.feature.home
 
 
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
@@ -28,7 +30,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -73,11 +77,13 @@ private fun HomeScreen(
     backdrop: LayerBackdrop,
     onIntent: (HomeIntent) -> Unit
 ) {
+    val bottomBarClearance = 112.dp
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 24.dp, vertical = 32.dp),
+            .padding(start = 24.dp, top = 32.dp, end = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top
     ) {
@@ -109,7 +115,7 @@ private fun HomeScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(modifier = Modifier.height(40.dp))
+        Spacer(modifier = Modifier.height(bottomBarClearance))
     }
 }
 
@@ -167,55 +173,70 @@ private fun ProblemTypesDialog(
     onDismiss: () -> Unit
 ) {
     Dialog(onDismissRequest = onDismiss) {
-        GlassPanel(
-            backdrop = backdrop,
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(max = 640.dp),
-            cornerRadius = 28.dp
+                .heightIn(max = 640.dp)
         ) {
-            Column(
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .background(
+                        color = Color.Black.copy(alpha = 0.18f),
+                        shape = RoundedCornerShape(28.dp)
+                    )
+            )
+
+            GlassPanel(
+                backdrop = backdrop,
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                cornerRadius = 28.dp,
+                backgroundColor = Color.White.copy(alpha = 0.20f),
+                borderColor = Color.White.copy(alpha = 0.38f)
             ) {
-                Row(
+                Column(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            text = "全部问题类型",
-                            color = Color.White,
-                            style = MaterialTheme.typography.titleLarge
-                        )
-                        Text(
-                            text = "后续需要走工单的类型可以在这里接入提交逻辑",
-                            color = Color.White.copy(alpha = 0.7f),
-                            style = MaterialTheme.typography.bodySmall
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                text = "全部问题类型",
+                                color = Color.White,
+                                style = MaterialTheme.typography.titleLarge
+                            )
+                            Text(
+                                text = "后续需要走工单的类型可以在这里接入提交逻辑",
+                                color = Color.White.copy(alpha = 0.76f),
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                        GlassButton(
+                            text = "关闭",
+                            backdrop = backdrop,
+                            onClick = onDismiss
                         )
                     }
-                    GlassButton(
-                        text = "关闭",
-                        backdrop = backdrop,
-                        onClick = onDismiss
-                    )
-                }
 
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(14.dp)
-                ) {
-                    campusNetworkProblemTypes.forEach { problem ->
-                        ProblemTypeItem(
-                            problem = problem,
-                            backdrop = backdrop
-                        )
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .verticalScroll(rememberScrollState()),
+                        verticalArrangement = Arrangement.spacedBy(14.dp)
+                    ) {
+                        campusNetworkProblemTypes.forEach { problem ->
+                            ProblemTypeItem(
+                                problem = problem,
+                                backdrop = backdrop
+                            )
+                        }
                     }
                 }
             }
@@ -310,6 +331,11 @@ private fun ContactPanel(
     backdrop: LayerBackdrop,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
+    val clipboardManager = LocalClipboardManager.current
+    val qqGroup = "待填写"
+    val wechatId = "WuWude-MrWang"
+
     GlassPanel(
         backdrop = backdrop,
         modifier = modifier,
@@ -324,17 +350,48 @@ private fun ContactPanel(
                 color = Color.White,
                 style = MaterialTheme.typography.titleLarge
             )
-            Text(
-                text = "售后 QQ 群号：待填写",
-                color = Color.White.copy(alpha = 0.86f),
-                style = MaterialTheme.typography.bodyMedium
+            ContactInfoRow(
+                label = "售后 QQ 群号：$qqGroup",
+                backdrop = backdrop,
+                onCopy = {
+                    clipboardManager.setText(AnnotatedString(qqGroup))
+                    Toast.makeText(context, "已复制 QQ 群号", Toast.LENGTH_SHORT).show()
+                }
             )
-            Text(
-                text = "工作人员联系方式(WeChat)：WuWude-MrWang",
-                color = Color.White.copy(alpha = 0.86f),
-                style = MaterialTheme.typography.bodyMedium
+            ContactInfoRow(
+                label = "工作人员联系方式(WeChat)：$wechatId",
+                backdrop = backdrop,
+                onCopy = {
+                    clipboardManager.setText(AnnotatedString(wechatId))
+                    Toast.makeText(context, "已复制微信号", Toast.LENGTH_SHORT).show()
+                }
             )
         }
+    }
+}
+
+@Composable
+private fun ContactInfoRow(
+    label: String,
+    backdrop: LayerBackdrop,
+    onCopy: () -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = label,
+            color = Color.White.copy(alpha = 0.86f),
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.weight(1f)
+        )
+        GlassButton(
+            text = "复制",
+            backdrop = backdrop,
+            onClick = onCopy
+        )
     }
 }
 
@@ -375,7 +432,7 @@ private fun ConnectionStepsPanel(
                 index = "2",
                 title = "登录校园网",
                 highlight = "输入学号和密码，账号密码与智慧校园一致，并选择中国电信。",
-                description = "正常连接后会弹出登录通知；如果没有弹出，可以在浏览器输入 10.255.255.156 进入登录页面。"
+                description = "正常连接后会弹出登录通知；如果没有弹出，可以在浏览器输入 10.255.255.154 进入登录页面。"
             )
             ConnectionStepItem(
                 index = "3",

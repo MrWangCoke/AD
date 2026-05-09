@@ -1,6 +1,8 @@
 # Auto-split from campus_portal_task.py. Keep behavior changes focused.
 
 import importlib.util
+import json
+import time
 from datetime import datetime
 
 from config import (
@@ -18,6 +20,7 @@ from config import (
     REMOTE_LOGIN_BUTTON_IMAGE_PATH,
     REMOTE_SYSTEM_MENU_IMAGE_PATH,
     STUDENT_ID_INPUT_IMAGE_PATH,
+    TICKET_CURSOR_PATH,
 )
 from tasks.dom_utils import click_visible_text_by_dom, print_visible_text_diagnostics
 from tasks.image_automation import (
@@ -27,6 +30,7 @@ from tasks.image_automation import (
     pyautogui,
     save_pyautogui_screenshot,
 )
+from tasks.ticket_queue import PendingTicket, fetch_next_ticket_from_db, update_ticket_status_in_db
 
 
 CAPTCHA_TEST_DIR = BASE_DIR / "CaptchaTest"
@@ -110,23 +114,19 @@ def select_saved_dx_account(page):
 def wait_for_manual_captcha(page):
     print("准备自动识别验证码")
     page.wait_for_timeout(1500)
-    
+
     try:
-        # 尝试自动识别
         captcha_code, cleanup_paths = recognize_remote_captcha(page)
-        print(f"✅ 自动识别成功，验证码为: {captcha_code}")
-        fill_remote_captcha_and_login(page, captcha_code, cleanup_paths)
-    except Exception as e:
-        print(f"⚠️ 自动识别失败: {e}")
+        print(f"自动识别成功，验证码为: {captcha_code}")
+    except Exception as error:
+        print(f"自动识别失败，改为手动输入: {error}")
         print("请手动输入验证码")
-        
-        # 降级为手动输入
         cleanup_paths = []
         captcha_code = input("请输入图形验证码: ").strip()
-        
         if not captcha_code:
             raise RuntimeError("验证码不能为空")
-        fill_remote_captcha_and_login(page, captcha_code, cleanup_paths=cleanup_paths)
+
+    fill_remote_captcha_and_login(page, captcha_code, cleanup_paths=cleanup_paths)
 
 
 def recognize_remote_captcha(page):
@@ -950,7 +950,7 @@ def navigate_remote_profile_menu(page):
         {
             "image_path": REMOTE_SYSTEM_MENU_IMAGE_PATH,
             "label": "认证计费管理系统",
-            "timeout_ms": 45000,
+            "timeout_ms": 20000,
             "dom_texts": ["认证计费管理系统"],
             "min_confidence": 0.48,
         },
@@ -1000,19 +1000,38 @@ def navigate_remote_profile_menu(page):
 
 
 def complete_profile_update_form(page):
-    print("开始填写修改资料表单")
-    student_id = input("请输入学号: ").strip()
-    broadband_account = input("请输入宽带账号: ").strip()
-    broadband_password = input("请输入宽带密码: ").strip()
+    print("开始进入工单处理循环")
+    idle_started_at = time.monotonic()
 
-    if not student_id:
-        raise RuntimeError("学号不能为空")
-    if not broadband_account:
-        raise RuntimeError("宽带账号不能为空")
-    if not broadband_password:
-        raise RuntimeError("宽带密码不能为空")
+    while True:
+        ticket = get_next_ticket_for_processing()
+        if ticket is None:
+            refresh_edit_profile_page(page)
+            print_idle_duration(idle_started_at)
+            page.wait_for_timeout(1000)
+            continue
 
-    fill_input_by_image(page, STUDENT_ID_INPUT_IMAGE_PATH, "学号输入框", student_id, click_x_ratio=0.78)
+        idle_started_at = time.monotonic()
+        print(
+            f"开始处理工单: id={ticket.id}, studentId={ticket.student_id}, "
+            f"broadbandAccount={ticket.broadband_account}, status={ticket.status}"
+        )
+        refresh_edit_profile_page(page)
+        process_profile_update_ticket(page, ticket)
+        mark_ticket_completed(ticket)
+        save_ticket_cursor(ticket)
+        print(f"工单处理完成: id={ticket.id}")
+
+
+def process_profile_update_ticket(page, ticket: PendingTicket):
+    if not ticket.student_id:
+        raise RuntimeError(f"工单 {ticket.id} 的 student_id 为空")
+    if not ticket.broadband_account:
+        raise RuntimeError(f"工单 {ticket.id} 的 broadband_account 为空")
+    if not ticket.new_password:
+        raise RuntimeError(f"工单 {ticket.id} 的 new_password 为空")
+
+    fill_input_by_image(page, STUDENT_ID_INPUT_IMAGE_PATH, "学号输入框", ticket.student_id, click_x_ratio=0.78)
     click_image_center(QUERY_BUTTON_IMAGE_PATH, "查询按钮", timeout_ms=15000, min_confidence=0.45)
     print("已点击查询按钮，等待页面加载")
     page.wait_for_timeout(2000)
@@ -1022,14 +1041,14 @@ def complete_profile_update_form(page):
         page,
         BROADBAND_ACCOUNT_INPUT_IMAGE_PATH,
         "宽带账号输入框",
-        broadband_account,
+        ticket.broadband_account,
         click_x_ratio=1.08,
     )
     fill_input_by_image(
         page,
         BROADBAND_PASSWORD_INPUT_IMAGE_PATH,
         "宽带密码输入框",
-        broadband_password,
+        ticket.new_password,
         click_x_ratio=1.08,
     )
 
@@ -1037,6 +1056,66 @@ def complete_profile_update_form(page):
     pyautogui.press("enter")
     page.wait_for_timeout(1500)
     confirm_profile_submission(page)
+
+
+def refresh_edit_profile_page(page):
+    if click_visible_text_by_dom(
+        page,
+        ["修改资料"],
+        prefer_clickable_ancestor=True,
+        raise_on_missing=False,
+        prefer_exact_match=True,
+    ):
+        print("已点击修改资料")
+        page.wait_for_timeout(800)
+        return
+
+    if REMOTE_EDIT_PROFILE_IMAGE_PATH.exists():
+        if click_image_center(REMOTE_EDIT_PROFILE_IMAGE_PATH, "修改资料", timeout_ms=1500, min_confidence=0.45):
+            print("已点击修改资料")
+            page.wait_for_timeout(800)
+            return
+
+    print("当前未重新点击修改资料，继续使用现有页面")
+
+
+def get_next_ticket_for_processing() -> PendingTicket | None:
+    cursor = load_ticket_cursor()
+    return fetch_next_ticket_from_db(
+        after_created_at=cursor.get("created_at"),
+        after_id=cursor.get("id"),
+    )
+
+
+def load_ticket_cursor() -> dict:
+    if not TICKET_CURSOR_PATH.exists():
+        return {}
+    try:
+        return json.loads(TICKET_CURSOR_PATH.read_text(encoding="utf-8"))
+    except Exception as error:
+        print("读取工单游标失败，改为从头开始:", error)
+        return {}
+
+
+def save_ticket_cursor(ticket: PendingTicket) -> None:
+    TICKET_CURSOR_PATH.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "id": ticket.id,
+        "created_at": ticket.created_at,
+    }
+    TICKET_CURSOR_PATH.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def mark_ticket_completed(ticket: PendingTicket) -> None:
+    update_ticket_status_in_db(ticket.id, 3, "自动化处理完成")
+
+
+def print_idle_duration(idle_started_at: float) -> None:
+    elapsed_seconds = int(time.monotonic() - idle_started_at)
+    hours = elapsed_seconds // 3600
+    minutes = (elapsed_seconds % 3600) // 60
+    seconds = elapsed_seconds % 60
+    print(f"已 {hours} 小时 {minutes} 分 {seconds} 秒没有工单")
 
 
 def fill_input_by_image(page, image_path, label, value, timeout_ms=20000, min_confidence=0.45, click_x_ratio=0.75):

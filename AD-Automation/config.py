@@ -25,6 +25,7 @@ QUERY_BUTTON_IMAGE_PATH = BASE_DIR / os.getenv("QUERY_BUTTON_IMAGE_PATH", "asset
 BROADBAND_ACCOUNT_INPUT_IMAGE_PATH = BASE_DIR / os.getenv("BROADBAND_ACCOUNT_INPUT_IMAGE_PATH", "assets/broadband_account_input.png")
 BROADBAND_PASSWORD_INPUT_IMAGE_PATH = BASE_DIR / os.getenv("BROADBAND_PASSWORD_INPUT_IMAGE_PATH", "assets/broadband_password_input.png")
 CONFIRM_BUTTON_IMAGE_PATH = BASE_DIR / os.getenv("CONFIRM_BUTTON_IMAGE_PATH", "assets/confirm_button.png")
+TICKET_CURSOR_PATH = BASE_DIR / os.getenv("TICKET_CURSOR_PATH", "output/ticket_cursor.json")
 HEADLESS = os.getenv("HEADLESS", "false").lower() == "true"
 BROWSER_CHANNEL = os.getenv("BROWSER_CHANNEL", "chrome")
 CHROME_CDP_URL = os.getenv("CHROME_CDP_URL", "")
@@ -32,3 +33,11 @@ AUTH_STATE_PATH = BASE_DIR / os.getenv("AUTH_STATE_PATH", ".auth/storage_state.j
 USE_AUTH_STATE = os.getenv("USE_AUTH_STATE", "false").lower() == "true"
 PORTAL_USERNAME = os.getenv("PORTAL_USERNAME", "")
 PORTAL_PASSWORD = os.getenv("PORTAL_PASSWORD", "")
+
+DATABASE_CONFIG = {
+    "host": os.getenv("DATABASE_HOST", "localhost"),
+    "port": int(os.getenv("DATABASE_PORT", "5432")),
+    "database": os.getenv("DATABASE_NAME", "campus_network_db"),
+    "user": os.getenv("DATABASE_USER", "postgres"),
+    "password": os.getenv("DATABASE_PASSWORD", ""),
+}

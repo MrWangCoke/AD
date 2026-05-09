@@ -33,13 +33,15 @@ fun GlassPanel(
     modifier: Modifier = Modifier,
     cornerRadius: Dp = 28.dp,
     contentPadding: PaddingValues = PaddingValues(20.dp),
+    backgroundColor: Color = Color.White.copy(alpha = 0.12f),
+    borderColor: Color = Color.White.copy(alpha = 0.22f),
     content: @Composable BoxScope.() -> Unit
 ) {
     val shape = RoundedCornerShape(cornerRadius)
     Box(
         modifier = modifier
-            .background(Color.White.copy(alpha = 0.12f), shape)
-            .border(1.dp, Color.White.copy(alpha = 0.22f), shape)
+            .background(backgroundColor, shape)
+            .border(1.dp, borderColor, shape)
             .padding(contentPadding),
         content = content
     )

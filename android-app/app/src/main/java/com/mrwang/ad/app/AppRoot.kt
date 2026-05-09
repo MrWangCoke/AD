@@ -5,11 +5,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -59,17 +55,15 @@ fun AppRoot() {
             Scaffold(
                 modifier = Modifier.fillMaxSize(),
                 containerColor = Color.Transparent,
-                bottomBar = {
-                    if (showBottomBar) {
-                        BottomBarSpacer()
-                    }
-                }
+                bottomBar = {}
             ) { innerPadding ->
                 AppNavGraph(
                     navController = navController,
                     backgroundState = backgroundState,
                     backdrop = backdrop,
-                    modifier = Modifier.padding(innerPadding)
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
                 )
             }
         }
@@ -83,17 +77,6 @@ fun AppRoot() {
             )
         }
     }
-}
-
-@Composable
-private fun BottomBarSpacer() {
-    Spacer(
-        modifier = Modifier
-            .fillMaxWidth()
-            .navigationBarsPadding()
-            .padding(horizontal = 28.dp, vertical = 12.dp)
-            .height(64.dp)
-    )
 }
 
 @Composable
