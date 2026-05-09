@@ -46,7 +46,28 @@ _captcha_predict_function = None
 
 
 
+def cleanup_stale_captcha_images():
+    CAPTCHA_CAPTURE_DIR.mkdir(parents=True, exist_ok=True)
+    patterns = (
+        "remote_captcha*.png",
+        "remote_captcha_combo*.png",
+    )
+    removed_count = 0
+
+    for pattern in patterns:
+        for file_path in CAPTCHA_CAPTURE_DIR.glob(pattern):
+            try:
+                file_path.unlink()
+                removed_count += 1
+            except Exception as error:
+                print("清理旧验证码截图失败:", file_path, error)
+
+    if removed_count:
+        print(f"已清理旧验证码截图 {removed_count} 张")
+
+
 def select_saved_dx_account(page):
+    cleanup_stale_captcha_images()
     print("开始处理远程页登录")
     try:
         page.bring_to_front()
@@ -723,10 +744,79 @@ def fill_remote_captcha_and_login(page, captcha_code, cleanup_paths=None):
     page.wait_for_timeout(300)
     print("已填入验证码，回车提交")
     pyautogui.press("enter")
-    page.wait_for_timeout(1500)
-    navigate_remote_profile_menu(page)
+    if not wait_for_remote_login_transition(page):
+        print("检测到页面仍停留在验证码登录界面，改为手动重新输入验证码")
+        manual_captcha_code = input("请重新手动输入验证码: ").strip()
+        if not manual_captcha_code:
+            raise RuntimeError("验证码不能为空")
+        refill_remote_captcha_and_resubmit(page, manual_captcha_code)
+        if not wait_for_remote_login_transition(page):
+            raise RuntimeError("重新输入验证码后页面仍未跳转，请检查验证码是否正确")
+    wait_for_remote_avatar_visible(page)
     cleanup_captcha_images(cleanup_paths)
+    navigate_remote_profile_menu(page)
 
+
+def wait_for_remote_login_transition(page, timeout_ms=8000):
+    print("检查验证码提交结果")
+    deadline = timeout_ms
+    interval = 800
+
+    while deadline > 0:
+        if is_remote_profile_entry_visible():
+            print("验证码提交成功，页面已继续")
+            return True
+        if not is_remote_captcha_still_visible():
+            print("验证码页已消失，继续后续流程")
+            return True
+        page.wait_for_timeout(interval)
+        deadline -= interval
+
+    return False
+
+
+def is_remote_profile_entry_visible():
+    if not REMOTE_AVATAR_IMAGE_PATH.exists():
+        return False
+    return locate_image_on_screen(REMOTE_AVATAR_IMAGE_PATH, min_confidence=0.55) is not None
+
+
+def is_remote_captcha_still_visible():
+    if not CAPTCHA_INPUT_IMAGE_PATH.exists():
+        return False
+    return locate_image_on_screen(CAPTCHA_INPUT_IMAGE_PATH, min_confidence=0.55) is not None
+
+
+def refill_remote_captcha_and_resubmit(page, captcha_code):
+    print(f"准备重新填写验证码: {captcha_code}")
+    captcha_match = wait_for_captcha_input_image(page, timeout_ms=10000)
+    center = pyautogui.center(captcha_match)
+    pyautogui.moveTo(center.x, center.y, duration=0.2)
+    pyautogui.click(x=center.x, y=center.y)
+    page.wait_for_timeout(200)
+    pyautogui.hotkey("ctrl", "a")
+    page.wait_for_timeout(120)
+    pyautogui.press("backspace")
+    page.wait_for_timeout(120)
+    pyautogui.write(captcha_code, interval=0.04)
+    page.wait_for_timeout(300)
+    print("已重新填入验证码，回车提交")
+    pyautogui.press("enter")
+
+
+def wait_for_remote_avatar_visible(page, timeout_ms=12000):
+    print("等待小人头像出现")
+    deadline = timeout_ms
+    interval = 800
+
+    while deadline > 0:
+        if is_remote_profile_entry_visible():
+            print("已检测到小人头像")
+            return
+        page.wait_for_timeout(interval)
+        deadline -= interval
+
+    raise RuntimeError("验证码提交后未检测到小人头像，请检查页面是否真正登录成功")
 
 
 def bring_remote_page_to_front(page):
