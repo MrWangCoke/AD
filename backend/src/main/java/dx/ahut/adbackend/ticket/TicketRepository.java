@@ -6,4 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface TicketRepository extends JpaRepository<Ticket, Long> {
 
     List<Ticket> findByUserIdOrderByCreatedAtDesc(Long userId);
+
+    List<Ticket> findByStatusOrderByCreatedAtAsc(Integer status);
 }

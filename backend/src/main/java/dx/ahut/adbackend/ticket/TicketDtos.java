@@ -21,6 +21,7 @@ public final class TicketDtos {
 
     public record TicketResponse(
             Long id,
+            Long userId,
             String ticketNo,
             String studentId,
             Integer ticketType,
@@ -36,6 +37,7 @@ public final class TicketDtos {
         public static TicketResponse from(Ticket ticket) {
             return new TicketResponse(
                     ticket.getId(),
+                    ticket.getUser().getId(),
                     ticket.getTicketNo(),
                     ticket.getStudentId(),
                     ticket.getTicketType(),

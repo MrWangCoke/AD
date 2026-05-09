@@ -6,6 +6,11 @@ BASE_DIR = Path(__file__).resolve().parent
 load_dotenv(BASE_DIR / ".env")
 
 BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8080")
+RUN_MODE = os.getenv("RUN_MODE", "tickets").strip().lower()
+TICKET_SOURCE = os.getenv("TICKET_SOURCE", "api").strip().lower()
+DATABASE_URL = os.getenv("DATABASE_URL", "")
+DATABASE_USERNAME = os.getenv("DATABASE_USERNAME", "")
+DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD", "")
 TARGET_URL = os.getenv("TARGET_URL", "https://blj.ahut.edu.cn/bhost/")
 ACCOUNT_INPUT_IMAGE_PATH = BASE_DIR / os.getenv("ACCOUNT_INPUT_IMAGE_PATH", "assets/account_input.png")
 DX_CANDIDATE_IMAGE_PATH = BASE_DIR / os.getenv("DX_CANDIDATE_IMAGE_PATH", "assets/dx_candidate.png")

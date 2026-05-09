@@ -26,6 +26,11 @@ public class TicketController {
         return ticketService.createNewUserBindTicket(request);
     }
 
+    @GetMapping("/pending")
+    public List<TicketResponse> listPendingTickets() {
+        return ticketService.listPendingTickets();
+    }
+
     @GetMapping("/users/{userId}")
     public List<TicketResponse> listUserTickets(@PathVariable Long userId) {
         return ticketService.listByUser(userId);

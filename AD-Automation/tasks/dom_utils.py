@@ -4,13 +4,20 @@
 
 
 
-def click_visible_text_by_dom(page, text, prefer_bottom=False, prefer_clickable_ancestor=False, raise_on_missing=True):
+def click_visible_text_by_dom(
+    page,
+    text,
+    prefer_bottom=False,
+    prefer_clickable_ancestor=False,
+    raise_on_missing=True,
+    prefer_exact_match=False,
+):
     target_texts = text if isinstance(text, list) else [text]
     evaluate_script = (
         """options => {
             const targetTexts = options.targetTexts.map(text => text.replace(/\\s+/g, '').toLowerCase());
             const candidates = Array.from(document.querySelectorAll(
-                'button,a,input[type="button"],input[type="submit"],.btn,.verification,span,div,td,th,li,tr,[role="button"]'
+                'button,a,input[type="button"],input[type="submit"],.btn,.verification,span,div,td,th,li,tr,[role="button"],[role="menuitem"]'
             ));
 
             const visibleCandidates = candidates.filter(el => {
@@ -30,33 +37,87 @@ def click_visible_text_by_dom(page, text, prefer_bottom=False, prefer_clickable_
                     && rect.bottom >= 0
                     && rect.top <= window.innerHeight
                     && value.length <= 120
-                    && targetTexts.some(targetText => value.includes(targetText));
+                    && targetTexts.some(targetText => (
+                        options.preferExactMatch ? value === targetText : value.includes(targetText)
+                    ));
             });
 
             const localInput = document.querySelector('#local_v');
-            if (options.preferBottom) {
+            const scoreCandidate = element => {
+                const value = [
+                    element.innerText,
+                    element.value,
+                    element.textContent,
+                    element.getAttribute('title'),
+                    element.getAttribute('aria-label')
+                ].filter(Boolean).join(' ').replace(/\\s+/g, '').toLowerCase();
+                const rect = element.getBoundingClientRect();
+                let score = 0;
+
+                if (targetTexts.some(targetText => value === targetText)) score += 1000;
+                if (targetTexts.some(targetText => value.startsWith(targetText))) score += 300;
+                if (targetTexts.some(targetText => value.includes(targetText))) score += 100;
+                if (element.matches('a,button,[role="button"],[role="menuitem"],li')) score += 80;
+                if (element.className && /menu|nav|item|entry|cell|row|tree/i.test(String(element.className))) score += 60;
+                if (rect.width >= 80) score += 20;
+                if (rect.height >= 24) score += 20;
+                if (options.preferBottom) score += rect.bottom;
+                return score;
+            };
+
+            visibleCandidates.sort((left, right) => {
+                const scoreDiff = scoreCandidate(right) - scoreCandidate(left);
+                if (scoreDiff !== 0) return scoreDiff;
+                const leftRect = left.getBoundingClientRect();
+                const rightRect = right.getBoundingClientRect();
+                return leftRect.top - rightRect.top;
+            });
+
+            if (!options.preferBottom && localInput && visibleCandidates.length > 1) {
+                visibleCandidates.sort((left, right) => {
+                    const scoreDiff = scoreCandidate(right) - scoreCandidate(left);
+                    if (scoreDiff !== 0) return scoreDiff;
+                    const leftRect = left.getBoundingClientRect();
+                    const rightRect = right.getBoundingClientRect();
+                    const inputRect = localInput.getBoundingClientRect();
+                    const leftDistance = Math.abs(leftRect.top - inputRect.top) + Math.abs(leftRect.left - inputRect.left);
+                    const rightDistance = Math.abs(rightRect.top - inputRect.top) + Math.abs(rightRect.left - inputRect.left);
+                    return leftDistance - rightDistance;
+                });
+            } else if (options.preferBottom) {
                 visibleCandidates.sort((left, right) => {
                     const leftRect = left.getBoundingClientRect();
                     const rightRect = right.getBoundingClientRect();
                     return rightRect.bottom - leftRect.bottom;
-                });
-            } else if (localInput && visibleCandidates.length > 1) {
-                const inputRect = localInput.getBoundingClientRect();
-                visibleCandidates.sort((left, right) => {
-                    const leftRect = left.getBoundingClientRect();
-                    const rightRect = right.getBoundingClientRect();
-                    const leftDistance = Math.abs(leftRect.top - inputRect.top) + Math.abs(leftRect.left - inputRect.left);
-                    const rightDistance = Math.abs(rightRect.top - inputRect.top) + Math.abs(rightRect.left - inputRect.left);
-                    return leftDistance - rightDistance;
                 });
             }
 
             const target = visibleCandidates[0];
             if (!target) return false;
             const clickable = options.preferClickableAncestor
-                ? target.closest('button,a,[role="button"],tr,li,.el-table__row,.ant-table-row,.ivu-table-row,.table-row,.resource-item')
+                ? target.closest(
+                    'button,a,[role="button"],[role="menuitem"],tr,li,' +
+                    '.el-menu-item,.el-submenu__title,.ant-menu-item,.ant-menu-submenu-title,' +
+                    '.ivu-menu-item,.ivu-menu-submenu-title,.table-row,.resource-item,.nav-item,.menu-item'
+                )
                 : null;
-            (clickable || target).click();
+            const node = clickable || target;
+            node.scrollIntoView({ block: 'center', inline: 'center' });
+            const rect = node.getBoundingClientRect();
+            const x = rect.left + rect.width / 2;
+            const y = rect.top + rect.height / 2;
+
+            for (const eventName of ['pointerdown', 'mousedown', 'pointerup', 'mouseup', 'click']) {
+                node.dispatchEvent(new MouseEvent(eventName, {
+                    bubbles: true,
+                    cancelable: true,
+                    view: window,
+                    clientX: x,
+                    clientY: y
+                }));
+            }
+            if (typeof node.focus === 'function') node.focus();
+            if (typeof node.click === 'function') node.click();
             return true;
         }"""
     )
@@ -64,6 +125,7 @@ def click_visible_text_by_dom(page, text, prefer_bottom=False, prefer_clickable_
         "targetTexts": target_texts,
         "preferBottom": prefer_bottom,
         "preferClickableAncestor": prefer_clickable_ancestor,
+        "preferExactMatch": prefer_exact_match,
     }
 
     clicked = False

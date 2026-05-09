@@ -61,6 +61,14 @@ public class TicketService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<TicketResponse> listPendingTickets() {
+        return ticketRepository.findByStatusOrderByCreatedAtAsc(Ticket.STATUS_PENDING)
+                .stream()
+                .map(TicketResponse::from)
+                .toList();
+    }
+
     private static String normalize(String value) {
         return value == null ? "" : value.trim();
     }

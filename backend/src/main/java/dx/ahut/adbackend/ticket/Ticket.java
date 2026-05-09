@@ -21,6 +21,9 @@ public class Ticket {
     public static final int TYPE_ACCOUNT_NOT_FOUND = 2;
     public static final int TYPE_BROADBAND_PASSWORD = 3;
     public static final int STATUS_PENDING = 0;
+    public static final int STATUS_QUEUED = 1;
+    public static final int STATUS_PROCESSING = 2;
+    public static final int STATUS_COMPLETED = 3;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -89,6 +92,10 @@ public class Ticket {
 
     public String getTicketNo() {
         return ticketNo;
+    }
+
+    public User getUser() {
+        return user;
     }
 
     public String getStudentId() {
