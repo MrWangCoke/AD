@@ -745,11 +745,8 @@ def fill_remote_captcha_and_login(page, captcha_code, cleanup_paths=None):
     print("已填入验证码，回车提交")
     pyautogui.press("enter")
     if not wait_for_remote_login_transition(page):
-        print("检测到页面仍停留在验证码登录界面，改为手动重新输入验证码")
-        manual_captcha_code = input("请重新手动输入验证码: ").strip()
-        if not manual_captcha_code:
-            raise RuntimeError("验证码不能为空")
-        refill_remote_captcha_and_resubmit(page, manual_captcha_code)
+        print("检测到页面仍停留在验证码登录界面，准备重新选择 dx 账号后再输入验证码")
+        manual_captcha_code = retry_remote_login_after_captcha_failure(page)
         if not wait_for_remote_login_transition(page):
             raise RuntimeError("重新输入验证码后页面仍未跳转，请检查验证码是否正确")
     wait_for_remote_avatar_visible(page)
@@ -802,6 +799,26 @@ def refill_remote_captcha_and_resubmit(page, captcha_code):
     page.wait_for_timeout(300)
     print("已重新填入验证码，回车提交")
     pyautogui.press("enter")
+
+
+def retry_remote_login_after_captcha_failure(page):
+    print("重新激活用户名输入框")
+    if not wait_and_double_click_account_input_by_image(page, timeout_ms=15000):
+        raise RuntimeError("验证码失败后未能重新激活用户名输入框")
+
+    print("重新选择保存的 dx 账号")
+    if not click_dx_candidate_by_image(page):
+        if not wait_for_saved_dx_candidate(page, timeout_ms=5000, raise_on_timeout=False):
+            raise RuntimeError("验证码失败后未检测到 dx 候选账号")
+        if not click_saved_dx_candidate(page):
+            raise RuntimeError("验证码失败后未能重新点击 dx 候选账号")
+
+    page.wait_for_timeout(1200)
+    manual_captcha_code = input("请重新手动输入验证码: ").strip()
+    if not manual_captcha_code:
+        raise RuntimeError("验证码不能为空")
+    refill_remote_captcha_and_resubmit(page, manual_captcha_code)
+    return manual_captcha_code
 
 
 def wait_for_remote_avatar_visible(page, timeout_ms=12000):
