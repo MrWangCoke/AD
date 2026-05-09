@@ -25,10 +25,10 @@ def click_image_center(image_path, label, timeout_ms=10000, region=None, min_con
     if pyautogui is None:
         return False
     if not image_path.exists():
-        print(f"未找到{label}图片模板，请保存到:", image_path)
+        print(f"缺少{label}图片模板: {image_path.name}")
         return False
 
-    print(f"开始根据图片查找{label}:", image_path)
+    print(f"开始定位{label} [{image_path.name}]")
     deadline = timeout_ms
     total_timeout_ms = timeout_ms
     interval = 300
@@ -37,7 +37,7 @@ def click_image_center(image_path, label, timeout_ms=10000, region=None, min_con
         match = locate_image_on_screen(image_path, region=region, min_confidence=min_confidence)
         if match:
             center = pyautogui.center(match)
-            print(f"已根据图片找到{label}，准备点击: ({center.x}, {center.y})")
+            print(f"已定位{label}，点击坐标: ({center.x}, {center.y})")
             pyautogui.moveTo(center.x, center.y, duration=0.2)
             pyautogui.mouseDown(x=center.x, y=center.y)
             page_sleep(60)
@@ -51,7 +51,7 @@ def click_image_center(image_path, label, timeout_ms=10000, region=None, min_con
         page_sleep(interval)
         deadline -= interval
 
-    print(f"等待{label}超时，未能匹配到图片")
+    print(f"等待{label}超时，未匹配到模板")
     save_pyautogui_screenshot(f"{label}_not_found")
     return False
 
@@ -83,7 +83,7 @@ def locate_image_on_screen(image_path, region=None, min_confidence=0.55):
             match = None
 
         if match:
-            print(f"PyAutoGUI 图片匹配成功，confidence={confidence}")
+            print(f"PyAutoGUI 匹配成功，score={confidence:.2f}")
             return match
 
     return None
@@ -135,8 +135,6 @@ def locate_image_on_screen_with_opencv(image_path, region=None, min_confidence=0
         print(f"OpenCV 模板匹配成功，score={best_score:.3f}")
         return best_box
 
-    if best_score >= 0:
-        print(f"OpenCV 最佳匹配未达阈值，best_score={best_score:.3f}，threshold={min_confidence:.2f}")
     return None
 
 
@@ -148,7 +146,7 @@ def save_pyautogui_screenshot(name):
         output_dir.mkdir(parents=True, exist_ok=True)
         output_path = output_dir / f"{name}.png"
         pyautogui.screenshot(str(output_path))
-        print("已保存当前屏幕截图:", output_path)
+        print("已保存调试截图:", output_path)
     except Exception as error:
         print("保存屏幕截图失败:", error)
 

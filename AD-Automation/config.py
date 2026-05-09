@@ -20,6 +20,11 @@ REMOTE_AVATAR_IMAGE_PATH = BASE_DIR / os.getenv("REMOTE_AVATAR_IMAGE_PATH", "ass
 REMOTE_SYSTEM_MENU_IMAGE_PATH = BASE_DIR / os.getenv("REMOTE_SYSTEM_MENU_IMAGE_PATH", "assets/billing_system_entry.png")
 REMOTE_BUSINESS_MENU_IMAGE_PATH = BASE_DIR / os.getenv("REMOTE_BUSINESS_MENU_IMAGE_PATH", "assets/business_management_menu.png")
 REMOTE_EDIT_PROFILE_IMAGE_PATH = BASE_DIR / os.getenv("REMOTE_EDIT_PROFILE_IMAGE_PATH", "assets/edit_profile_menu.png")
+STUDENT_ID_INPUT_IMAGE_PATH = BASE_DIR / os.getenv("STUDENT_ID_INPUT_IMAGE_PATH", "assets/student_id_input.png")
+QUERY_BUTTON_IMAGE_PATH = BASE_DIR / os.getenv("QUERY_BUTTON_IMAGE_PATH", "assets/query_button.png")
+BROADBAND_ACCOUNT_INPUT_IMAGE_PATH = BASE_DIR / os.getenv("BROADBAND_ACCOUNT_INPUT_IMAGE_PATH", "assets/broadband_account_input.png")
+BROADBAND_PASSWORD_INPUT_IMAGE_PATH = BASE_DIR / os.getenv("BROADBAND_PASSWORD_INPUT_IMAGE_PATH", "assets/broadband_password_input.png")
+CONFIRM_BUTTON_IMAGE_PATH = BASE_DIR / os.getenv("CONFIRM_BUTTON_IMAGE_PATH", "assets/confirm_button.png")
 HEADLESS = os.getenv("HEADLESS", "false").lower() == "true"
 BROWSER_CHANNEL = os.getenv("BROWSER_CHANNEL", "chrome")
 CHROME_CDP_URL = os.getenv("CHROME_CDP_URL", "")

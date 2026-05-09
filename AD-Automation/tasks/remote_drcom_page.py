@@ -6,13 +6,18 @@ from datetime import datetime
 from config import (
     ACCOUNT_INPUT_IMAGE_PATH,
     BASE_DIR,
+    BROADBAND_ACCOUNT_INPUT_IMAGE_PATH,
+    BROADBAND_PASSWORD_INPUT_IMAGE_PATH,
     CAPTCHA_INPUT_IMAGE_PATH,
+    CONFIRM_BUTTON_IMAGE_PATH,
     DX_CANDIDATE_IMAGE_PATH,
+    QUERY_BUTTON_IMAGE_PATH,
     REMOTE_AVATAR_IMAGE_PATH,
     REMOTE_BUSINESS_MENU_IMAGE_PATH,
     REMOTE_EDIT_PROFILE_IMAGE_PATH,
     REMOTE_LOGIN_BUTTON_IMAGE_PATH,
     REMOTE_SYSTEM_MENU_IMAGE_PATH,
+    STUDENT_ID_INPUT_IMAGE_PATH,
 )
 from tasks.dom_utils import click_visible_text_by_dom, print_visible_text_diagnostics
 from tasks.image_automation import (
@@ -42,7 +47,7 @@ _captcha_predict_function = None
 
 
 def select_saved_dx_account(page):
-    print("准备在新标签页选择保存的 dx 账号")
+    print("开始处理远程页登录")
     try:
         page.bring_to_front()
     except Exception:
@@ -50,13 +55,13 @@ def select_saved_dx_account(page):
     page.wait_for_timeout(1000)
 
     if wait_and_double_click_account_input_by_image(page, timeout_ms=45000):
-        print("已优先通过图片双击用户名输入框")
+        print("已激活用户名输入框")
     else:
         print_visible_text_diagnostics(page, ["用户名", "账号", "dx"])
         raise RuntimeError("等待用户名输入框图片超时")
 
     if click_dx_candidate_by_image(page):
-        print("已通过图片点击 dx 候选账号")
+        print("已选中保存的 dx 账号")
         wait_for_manual_captcha(page)
         return
 
@@ -66,13 +71,13 @@ def select_saved_dx_account(page):
             print_visible_text_diagnostics(page, ["用户名", "账号", "dx"])
             raise RuntimeError("PyAutoGUI 未能点击新标签页中的用户名输入框")
         if click_dx_candidate_by_image(page):
-            print("已通过图片点击 dx 候选账号")
+            print("已选中保存的 dx 账号")
             wait_for_manual_captcha(page)
             return
         wait_for_saved_dx_candidate(page, timeout_ms=7000)
 
     if click_saved_dx_candidate(page):
-        print("已点击 dx 候选账号")
+        print("已选中保存的 dx 账号")
         wait_for_manual_captcha(page)
         return
 
@@ -82,15 +87,25 @@ def select_saved_dx_account(page):
 
 
 def wait_for_manual_captcha(page):
-    print("已点击 dx 候选账号，等待浏览器自动填入用户名和密码")
+    print("准备自动识别验证码")
     page.wait_for_timeout(1500)
-    cleanup_paths = []
-    captcha_code = input("请输入图形验证码，脚本将自动填入并点击登录: ").strip()
-
-    if not captcha_code:
-        raise RuntimeError("验证码不能为空")
-    fill_remote_captcha_and_login(page, captcha_code, cleanup_paths=cleanup_paths)
-
+    
+    try:
+        # 尝试自动识别
+        captcha_code, cleanup_paths = recognize_remote_captcha(page)
+        print(f"✅ 自动识别成功，验证码为: {captcha_code}")
+        fill_remote_captcha_and_login(page, captcha_code, cleanup_paths)
+    except Exception as e:
+        print(f"⚠️ 自动识别失败: {e}")
+        print("请手动输入验证码")
+        
+        # 降级为手动输入
+        cleanup_paths = []
+        captcha_code = input("请输入图形验证码: ").strip()
+        
+        if not captcha_code:
+            raise RuntimeError("验证码不能为空")
+        fill_remote_captcha_and_login(page, captcha_code, cleanup_paths=cleanup_paths)
 
 
 def recognize_remote_captcha(page):
@@ -167,7 +182,7 @@ def wait_for_captcha_input_image(page, timeout_ms=20000):
 
     # 这里不是直接识别验证码数字，而是先找“验证码输入框”这一行的模板图。
     # 找到输入框后，再根据它的位置去推算右侧验证码图片的截图区域。
-    print("开始定位验证码输入框图片:", CAPTCHA_INPUT_IMAGE_PATH)
+    print(f"开始定位验证码输入框 [{CAPTCHA_INPUT_IMAGE_PATH.name}]")
     deadline = timeout_ms
     interval = 500
     next_progress_ms = timeout_ms
@@ -176,7 +191,7 @@ def wait_for_captcha_input_image(page, timeout_ms=20000):
         match = locate_image_on_screen(CAPTCHA_INPUT_IMAGE_PATH)
         if match:
             print(
-                "已定位验证码输入框图片:",
+                "已定位验证码输入框:",
                 f"left={match.left}, top={match.top}, width={match.width}, height={match.height}",
             )
             return match
@@ -194,7 +209,8 @@ def wait_for_captcha_input_image(page, timeout_ms=20000):
 def get_captcha_capture_region(captcha_input_match):
     screen_size = pyautogui.size()
     scale = captcha_input_match.width / CAPTCHA_INPUT_TEMPLATE_WIDTH
-    left = int(round(captcha_input_match.left + captcha_input_match.width + CAPTCHA_CAPTURE_GAP * scale))
+    # 方法1：向左移动验证码宽度的 1/10
+    left = int(round(captcha_input_match.left + captcha_input_match.width + CAPTCHA_CAPTURE_GAP * scale - CAPTCHA_IMAGE_WIDTH * scale * 0.1))
     top = int(round(captcha_input_match.top + CAPTCHA_TOP_OFFSET * scale))
     width = max(1, int(round(CAPTCHA_IMAGE_WIDTH * scale)))
     height = max(1, int(round(CAPTCHA_IMAGE_HEIGHT * scale)))
@@ -567,7 +583,7 @@ def wait_and_double_click_account_input_by_image(page, timeout_ms=45000):
     if not ACCOUNT_INPUT_IMAGE_PATH.exists():
         raise RuntimeError(f"缺少用户名输入框图片模板，请保存到: {ACCOUNT_INPUT_IMAGE_PATH}")
 
-    print("等待用户名输入框图片加载，最长等待:", timeout_ms, "ms")
+    print("等待用户名输入框出现")
     deadline = timeout_ms
     interval = 700
     next_progress_ms = timeout_ms
@@ -581,7 +597,7 @@ def wait_and_double_click_account_input_by_image(page, timeout_ms=45000):
         page.wait_for_timeout(interval)
         deadline -= interval
 
-    print("等待用户名输入框超时，仍未匹配到可点击区域")
+    print("等待用户名输入框超时")
     save_pyautogui_screenshot("account_input_not_found")
     return False
 
@@ -591,11 +607,10 @@ def double_click_account_input_by_image(page, save_not_found_screenshot=True):
     if pyautogui is None:
         return False
     if not ACCOUNT_INPUT_IMAGE_PATH.exists():
-        print("未找到用户名输入框图片模板:", ACCOUNT_INPUT_IMAGE_PATH)
+        print("缺少用户名输入框图片模板:", ACCOUNT_INPUT_IMAGE_PATH.name)
         return False
 
-    print("开始根据图片查找用户名输入框:", ACCOUNT_INPUT_IMAGE_PATH)
-    print("当前屏幕尺寸:", pyautogui.size())
+    print(f"开始定位用户名输入框 [{ACCOUNT_INPUT_IMAGE_PATH.name}]")
     deadline = 10000
     interval = 500
     while deadline > 0:
@@ -603,11 +618,10 @@ def double_click_account_input_by_image(page, save_not_found_screenshot=True):
 
         if match:
             center = pyautogui.center(match)
-            print(f"已根据图片找到用户名输入框，1 秒后点击三下: ({center.x}, {center.y})")
+            print(f"已定位用户名输入框，三击坐标: ({center.x}, {center.y})")
             page.wait_for_timeout(1000)
             pyautogui.moveTo(center.x, center.y, duration=0.25)
             pyautogui.click(x=center.x, y=center.y, clicks=3, interval=0.12)
-            print("已用 PyAutoGUI 点击三下用户名输入框")
             page.wait_for_timeout(1200)
             return True
 
@@ -615,7 +629,7 @@ def double_click_account_input_by_image(page, save_not_found_screenshot=True):
         deadline -= interval
 
     if save_not_found_screenshot:
-        print("根据图片未找到用户名输入框")
+        print("未定位到用户名输入框")
         save_pyautogui_screenshot("account_input_not_found")
     return False
 
@@ -662,10 +676,10 @@ def click_dx_candidate_by_image(page):
     if pyautogui is None:
         return False
     if not DX_CANDIDATE_IMAGE_PATH.exists():
-        print("未找到 dx 候选图片模板，请保存到:", DX_CANDIDATE_IMAGE_PATH)
+        print("缺少 dx 候选图片模板:", DX_CANDIDATE_IMAGE_PATH.name)
         return False
 
-    print("开始根据图片查找 dx 候选账号:", DX_CANDIDATE_IMAGE_PATH)
+    print(f"开始定位 dx 候选账号 [{DX_CANDIDATE_IMAGE_PATH.name}]")
     deadline = 10000
     interval = 300
     next_progress_ms = deadline
@@ -674,10 +688,9 @@ def click_dx_candidate_by_image(page):
 
         if match:
             center = pyautogui.center(match)
-            print(f"已根据图片找到 dx 候选，准备点击: ({center.x}, {center.y})")
+            print(f"已定位 dx 候选账号，点击坐标: ({center.x}, {center.y})")
             pyautogui.moveTo(center.x, center.y, duration=0.2)
             pyautogui.click(x=center.x, y=center.y)
-            print("已用 PyAutoGUI 点击 dx 候选")
             page.wait_for_timeout(800)
             return True
 
@@ -687,7 +700,7 @@ def click_dx_candidate_by_image(page):
         page.wait_for_timeout(interval)
         deadline -= interval
 
-    print("等待 dx 候选图片超时，未能匹配到 dx")
+    print("等待 dx 候选账号超时")
     save_pyautogui_screenshot("dx_candidate_not_found")
     return False
 
@@ -697,7 +710,7 @@ def fill_remote_captcha_and_login(page, captcha_code, cleanup_paths=None):
     if pyautogui is None:
         raise RuntimeError("未安装 PyAutoGUI，无法填入远程验证码")
 
-    print("准备填入验证码:", captcha_code)
+    print(f"准备填入验证码: {captcha_code}")
     bring_remote_page_to_front(page)
     captcha_match = wait_for_captcha_input_image(page, timeout_ms=20000)
     center = pyautogui.center(captcha_match)
@@ -708,12 +721,8 @@ def fill_remote_captcha_and_login(page, captcha_code, cleanup_paths=None):
     pyautogui.hotkey("ctrl", "a")
     pyautogui.write(captcha_code, interval=0.04)
     page.wait_for_timeout(300)
-    print("已填入验证码")
-
-    if not click_remote_login_button(page, captcha_match):
-        raise RuntimeError("未能点击远程登录按钮，请检查页面是否被遮挡或结构已变化")
-
-    print("已点击远程登录按钮")
+    print("已填入验证码，回车提交")
+    pyautogui.press("enter")
     page.wait_for_timeout(1500)
     navigate_remote_profile_menu(page)
     cleanup_captcha_images(cleanup_paths)
@@ -723,10 +732,9 @@ def fill_remote_captcha_and_login(page, captcha_code, cleanup_paths=None):
 def bring_remote_page_to_front(page):
     try:
         page.bring_to_front()
-        print("已尝试将远程页面切到前台")
         page.wait_for_timeout(300)
     except Exception as error:
-        print("切换远程页面到前台失败，继续后续兜底:", error)
+        print("切换远程页面到前台失败，继续执行:", error)
 
 
 
@@ -824,7 +832,7 @@ def click_remote_login_button_by_dom(page):
 
 
 def navigate_remote_profile_menu(page):
-    print("准备进入远程系统修改资料页面")
+    print("开始进入修改资料页面")
     steps = [
         {
             "image_path": REMOTE_AVATAR_IMAGE_PATH,
@@ -863,7 +871,7 @@ def navigate_remote_profile_menu(page):
         min_confidence = step.get("min_confidence", 0.62)
 
         if dom_texts:
-            print(f"优先尝试通过 DOM 点击{label}")
+            print(f"尝试通过 DOM 点击{label}")
             if click_visible_text_by_dom(
                 page,
                 dom_texts,
@@ -874,13 +882,134 @@ def navigate_remote_profile_menu(page):
                 print(f"已通过 DOM 点击{label}")
                 page.wait_for_timeout(1200)
                 continue
-            print(f"未通过 DOM 找到{label}，回退到图片点击")
+            print(f"DOM 未找到{label}，改用图片点击")
 
         if not click_image_center(image_path, label, timeout_ms=timeout_ms, min_confidence=min_confidence):
             raise RuntimeError(f"未找到或未能点击{label}: {image_path}")
         page.wait_for_timeout(1200)
 
     print("已进入修改资料页面")
+    complete_profile_update_form(page)
+
+
+def complete_profile_update_form(page):
+    print("开始填写修改资料表单")
+    student_id = input("请输入学号: ").strip()
+    broadband_account = input("请输入宽带账号: ").strip()
+    broadband_password = input("请输入宽带密码: ").strip()
+
+    if not student_id:
+        raise RuntimeError("学号不能为空")
+    if not broadband_account:
+        raise RuntimeError("宽带账号不能为空")
+    if not broadband_password:
+        raise RuntimeError("宽带密码不能为空")
+
+    fill_input_by_image(page, STUDENT_ID_INPUT_IMAGE_PATH, "学号输入框", student_id, click_x_ratio=0.78)
+    click_image_center(QUERY_BUTTON_IMAGE_PATH, "查询按钮", timeout_ms=15000, min_confidence=0.45)
+    print("已点击查询按钮，等待页面加载")
+    page.wait_for_timeout(2000)
+
+    scroll_profile_form_to_bottom(page)
+    fill_input_by_image(
+        page,
+        BROADBAND_ACCOUNT_INPUT_IMAGE_PATH,
+        "宽带账号输入框",
+        broadband_account,
+        click_x_ratio=1.08,
+    )
+    fill_input_by_image(
+        page,
+        BROADBAND_PASSWORD_INPUT_IMAGE_PATH,
+        "宽带密码输入框",
+        broadband_password,
+        click_x_ratio=1.08,
+    )
+
+    print("宽带信息填写完成，按回车提交")
+    pyautogui.press("enter")
+    page.wait_for_timeout(1500)
+    confirm_profile_submission(page)
+
+
+def fill_input_by_image(page, image_path, label, value, timeout_ms=20000, min_confidence=0.45, click_x_ratio=0.75):
+    if pyautogui is None:
+        raise RuntimeError("未安装 PyAutoGUI，无法通过图片填写输入框")
+    if not image_path.exists():
+        raise RuntimeError(f"缺少{label}图片模板: {image_path}")
+
+    print(f"开始定位{label} [{image_path.name}]")
+    deadline = timeout_ms
+    interval = 400
+
+    while deadline > 0:
+        match = locate_image_on_screen(image_path, min_confidence=min_confidence)
+        if match:
+            target_x = int(round(match.left + match.width * click_x_ratio))
+            target_y = int(round(match.top + match.height / 2))
+            screen_size = pyautogui.size()
+            target_x = max(1, min(screen_size.width - 1, target_x))
+            target_y = max(1, min(screen_size.height - 1, target_y))
+            print(f"已定位{label}，输入坐标: ({target_x}, {target_y})")
+            pyautogui.moveTo(target_x, target_y, duration=0.2)
+            pyautogui.click(x=target_x, y=target_y)
+            page.wait_for_timeout(200)
+            pyautogui.hotkey("ctrl", "a")
+            page.wait_for_timeout(120)
+            pyautogui.press("backspace")
+            page.wait_for_timeout(120)
+            pyautogui.write(value, interval=0.03)
+            page.wait_for_timeout(300)
+            print(f"已填写{label}")
+            return
+
+        page.wait_for_timeout(interval)
+        deadline -= interval
+
+    save_pyautogui_screenshot(f"{label}_not_found")
+    raise RuntimeError(f"未找到{label}: {image_path}")
+
+
+def scroll_profile_form_to_bottom(page):
+    if pyautogui is None:
+        raise RuntimeError("未安装 PyAutoGUI，无法滚动页面")
+
+    print("开始下滑到宽带信息区域")
+    try:
+        page.mouse.wheel(0, 1200)
+        page.wait_for_timeout(600)
+        page.mouse.wheel(0, 1200)
+        page.wait_for_timeout(600)
+    except Exception:
+        pyautogui.scroll(-1200)
+        page.wait_for_timeout(600)
+        pyautogui.scroll(-1200)
+        page.wait_for_timeout(600)
+    print("已下滑页面")
+
+
+def confirm_profile_submission(page):
+    print("等待确认弹窗加载")
+    page.wait_for_timeout(2500)
+
+    if CONFIRM_BUTTON_IMAGE_PATH.exists():
+        print("开始查找确认按钮图片")
+        if click_image_center(CONFIRM_BUTTON_IMAGE_PATH, "确认按钮", timeout_ms=12000, min_confidence=0.45):
+            print("已通过图片点击确认按钮")
+            return
+
+    print("图片未找到确认按钮，尝试通过文字点击")
+    if click_visible_text_by_dom(
+        page,
+        ["确认", "确定"],
+        prefer_clickable_ancestor=True,
+        raise_on_missing=False,
+        prefer_exact_match=True,
+    ):
+        print("已通过 DOM 点击确认按钮")
+        return
+
+    raise RuntimeError("未找到弹出的确认按钮，请补充确认按钮图片或检查弹窗是否出现")
 
 
 
