@@ -19,7 +19,7 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField("String", "AUTH_BASE_URL", "\"http://192.168.31.17:8080/\"")
+        buildConfigField("String", "AUTH_BASE_URL", "\"https://ahutdx.online/\"")
     }
 
     buildTypes {
