@@ -1,0 +1,71 @@
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]: A
+      - generic [ref=e7]:
+        - paragraph [ref=e8]: Campus Service
+        - heading "校园网服务平台" [level=1] [ref=e9]
+    - navigation [ref=e10]:
+      - button "主页 绑定入口与问题说明" [ref=e11] [cursor=pointer]:
+        - generic [ref=e12]: 主页
+        - generic [ref=e13]: 绑定入口与问题说明
+      - button "消息 通知与常见提醒" [ref=e14] [cursor=pointer]:
+        - generic [ref=e15]: 消息
+        - generic [ref=e16]: 通知与常见提醒
+      - button "个人 登录、资料与工单" [ref=e17] [cursor=pointer]:
+        - generic [ref=e18]: 个人
+        - generic [ref=e19]: 登录、资料与工单
+    - generic [ref=e20]:
+      - paragraph [ref=e21]: 当前状态
+      - paragraph [ref=e22]: 游客模式
+      - paragraph [ref=e23]: 登录后可提交绑定工单并查看进度
+      - generic [ref=e24]:
+        - generic [ref=e25]: 工单总数
+        - strong [ref=e26]: "0"
+  - main [ref=e27]:
+    - generic [ref=e28]:
+      - generic [ref=e29]:
+        - paragraph [ref=e30]: Desktop Workspace
+        - heading "个人" [level=2] [ref=e31]
+        - paragraph [ref=e32]: 登录或注册后即可查看工单、编辑资料并继续后续处理。
+      - generic [ref=e33]:
+        - generic [ref=e34]:
+          - generic [ref=e35]: 后端状态
+          - strong [ref=e36]: API 已接入
+        - generic [ref=e37]:
+          - generic [ref=e38]: 最近工单
+          - strong [ref=e39]: 暂无工单
+        - generic [ref=e40]:
+          - generic [ref=e42]: 游
+          - generic [ref=e43]:
+            - paragraph [ref=e44]: 未登录
+            - paragraph [ref=e45]: 登录后可查看工单
+    - generic [ref=e46]:
+      - article [ref=e47]:
+        - generic [ref=e48]:
+          - generic [ref=e49]:
+            - paragraph [ref=e50]: 账号访问
+            - heading "桌面端继续使用原来 App 的登录与注册逻辑" [level=3] [ref=e51]
+            - paragraph [ref=e52]: 登录后可查看工单、编辑资料并继续和自动化流程配合。
+          - generic [ref=e53]:
+            - button "登录" [ref=e54] [cursor=pointer]
+            - button "注册" [ref=e55] [cursor=pointer]
+        - generic [ref=e56]:
+          - generic [ref=e57]:
+            - generic [ref=e58]: 手机号
+            - textbox "手机号" [ref=e59]:
+              - /placeholder: 请输入手机号
+          - generic [ref=e60]:
+            - generic [ref=e61]: 密码
+            - textbox "密码" [ref=e62]:
+              - /placeholder: 请输入密码
+          - button "登录" [ref=e64] [cursor=pointer]
+      - article [ref=e65]:
+        - generic [ref=e67]:
+          - paragraph [ref=e68]: 登录后可用
+          - heading "网页端接住 App 已有的能力，不做功能缩水" [level=3] [ref=e69]
+        - list [ref=e70]:
+          - listitem [ref=e71]: 主页提交新用户绑定工单。
+          - listitem [ref=e72]: 个人页查看工单状态与处理进度。
+          - listitem [ref=e73]: 编辑姓名、学号、手机号和头像地址。
+          - listitem [ref=e74]: 后续继续复用自动化程序处理远程系统。

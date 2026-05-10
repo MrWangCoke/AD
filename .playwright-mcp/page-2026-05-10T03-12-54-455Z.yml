@@ -1,0 +1,82 @@
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]: A
+      - generic [ref=e7]:
+        - paragraph [ref=e8]: Campus Service
+        - heading "校园网服务平台" [level=1] [ref=e9]
+    - navigation [ref=e10]:
+      - button "主页 绑定入口与问题说明" [ref=e11] [cursor=pointer]:
+        - generic [ref=e12]: 主页
+        - generic [ref=e13]: 绑定入口与问题说明
+      - button "消息 通知与常见提醒" [ref=e14] [cursor=pointer]:
+        - generic [ref=e15]: 消息
+        - generic [ref=e16]: 通知与常见提醒
+      - button "个人 登录、资料与工单" [ref=e17] [cursor=pointer]:
+        - generic [ref=e18]: 个人
+        - generic [ref=e19]: 登录、资料与工单
+    - generic [ref=e20]:
+      - paragraph [ref=e21]: 当前状态
+      - paragraph [ref=e22]: 游客模式
+      - paragraph [ref=e23]: 登录后可提交绑定工单并查看进度
+      - generic [ref=e24]:
+        - generic [ref=e25]: 工单总数
+        - strong [ref=e26]: "0"
+  - main [ref=e27]:
+    - generic [ref=e28]:
+      - generic [ref=e29]:
+        - paragraph [ref=e30]: Desktop Workspace
+        - heading "消息" [level=2] [ref=e31]
+        - paragraph [ref=e32]: 保留 App 里的消息分类，但重组成更适合桌面端查看的通知面板。
+      - generic [ref=e33]:
+        - generic [ref=e34]:
+          - generic [ref=e35]: 后端状态
+          - strong [ref=e36]: API 已接入
+        - generic [ref=e37]:
+          - generic [ref=e38]: 最近工单
+          - strong [ref=e39]: 暂无工单
+        - generic [ref=e40]:
+          - generic [ref=e42]: 游
+          - generic [ref=e43]:
+            - paragraph [ref=e44]: 未登录
+            - paragraph [ref=e45]: 登录后可查看工单
+    - generic [ref=e46]:
+      - article [ref=e47]:
+        - generic [ref=e49]:
+          - paragraph [ref=e50]: 消息中心
+          - heading "和 App 保持同样的消息分类，但做成桌面阅读流" [level=3] [ref=e51]
+        - generic [ref=e52]:
+          - button "系统通知 点击提示 后端维护、远程自动化运行状态和平台更新说明会集中放在这里。" [ref=e53] [cursor=pointer]:
+            - generic [ref=e54]:
+              - strong [ref=e55]: 系统通知
+              - generic [ref=e56]: 点击提示
+            - paragraph [ref=e57]: 后端维护、远程自动化运行状态和平台更新说明会集中放在这里。
+          - button "订单消息 点击提示 工单提交后会在这里提示状态变化，也方便桌面端统一回看处理进度。" [ref=e58] [cursor=pointer]:
+            - generic [ref=e59]:
+              - strong [ref=e60]: 订单消息
+              - generic [ref=e61]: 点击提示
+            - paragraph [ref=e62]: 工单提交后会在这里提示状态变化，也方便桌面端统一回看处理进度。
+          - button "活动提醒 点击提示 与校园网套餐、会员领取和服务窗口相关的提醒会归到这一类。" [ref=e63] [cursor=pointer]:
+            - generic [ref=e64]:
+              - strong [ref=e65]: 活动提醒
+              - generic [ref=e66]: 点击提示
+            - paragraph [ref=e67]: 与校园网套餐、会员领取和服务窗口相关的提醒会归到这一类。
+      - article [ref=e68]:
+        - generic [ref=e70]:
+          - paragraph [ref=e71]: 消息说明
+          - heading "桌面端把零散提醒合成了一个固定侧栏" [level=3] [ref=e72]
+        - list [ref=e73]:
+          - listitem [ref=e74]: 系统通知：对应后端维护、自动化运行和平台更新。
+          - listitem [ref=e75]: 订单消息：对应工单提交后从待处理到已完成的状态变化。
+          - listitem [ref=e76]: 活动提醒：对应校园网套餐、权益和人工窗口相关的信息。
+        - generic [ref=e77]:
+          - generic [ref=e78]:
+            - generic [ref=e79]:
+              - paragraph [ref=e80]: 售后 QQ 群号
+              - paragraph [ref=e81]: 待填写
+            - button "复制" [ref=e82] [cursor=pointer]
+          - generic [ref=e83]:
+            - generic [ref=e84]:
+              - paragraph [ref=e85]: 工作人员联系方式(WeChat)
+              - paragraph [ref=e86]: WuWude-MrWang
+            - button "复制" [ref=e87] [cursor=pointer]

@@ -1,0 +1,187 @@
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]: A
+      - generic [ref=e7]:
+        - paragraph [ref=e8]: Campus Service
+        - heading "校园网服务平台" [level=1] [ref=e9]
+    - navigation [ref=e10]:
+      - button "主页 绑定入口与问题说明" [ref=e11] [cursor=pointer]:
+        - generic [ref=e12]: 主页
+        - generic [ref=e13]: 绑定入口与问题说明
+      - button "消息 通知与常见提醒" [ref=e14] [cursor=pointer]:
+        - generic [ref=e15]: 消息
+        - generic [ref=e16]: 通知与常见提醒
+      - button "个人 登录、资料与工单" [ref=e17] [cursor=pointer]:
+        - generic [ref=e18]: 个人
+        - generic [ref=e19]: 登录、资料与工单
+    - generic [ref=e20]:
+      - paragraph [ref=e21]: 当前状态
+      - paragraph [ref=e22]: 游客模式
+      - paragraph [ref=e23]: 登录后可提交绑定工单并查看进度
+      - generic [ref=e24]:
+        - generic [ref=e25]: 工单总数
+        - strong [ref=e26]: "0"
+  - main [ref=e27]:
+    - generic [ref=e28]:
+      - generic [ref=e29]:
+        - paragraph [ref=e30]: Desktop Workspace
+        - heading "主页" [level=2] [ref=e31]
+        - paragraph [ref=e32]: 先登录，再在主页提交需要自动化处理的绑定工单。
+      - generic [ref=e33]:
+        - generic [ref=e34]:
+          - generic [ref=e35]: 后端状态
+          - strong [ref=e36]: API 已接入
+        - generic [ref=e37]:
+          - generic [ref=e38]: 最近工单
+          - strong [ref=e39]: 暂无工单
+        - generic [ref=e40]:
+          - generic [ref=e42]: 游
+          - generic [ref=e43]:
+            - paragraph [ref=e44]: 未登录
+            - paragraph [ref=e45]: 登录后可查看工单
+    - generic [ref=e46]:
+      - article [ref=e47]:
+        - generic [ref=e48]:
+          - paragraph [ref=e49]: 新用户绑定
+          - heading "把移动端的绑定入口搬到桌面端，但交互更清晰。" [level=3] [ref=e50]
+          - paragraph [ref=e51]: 这里延续 App 里的核心逻辑：登录后填写学号和新办电信校园卡手机号，提交后生成工单，后续由自动化程序继续处理。
+          - generic [ref=e53]: 请先登录后再提交工单
+        - generic [ref=e54]:
+          - generic [ref=e55]:
+            - generic [ref=e56]: 学号
+            - textbox "学号" [ref=e57]:
+              - /placeholder: 请输入学号
+          - generic [ref=e58]:
+            - generic [ref=e59]: 手机号
+            - textbox "手机号" [ref=e60]:
+              - /placeholder: 请输入新办的电信校园卡手机号
+          - button "立即绑定" [ref=e61] [cursor=pointer]
+          - paragraph [ref=e62]: 工单提交后会在“个人”页同步显示。若提示号码不匹配，请先把账号手机号改成电信校园卡号码。
+      - article [ref=e63]:
+        - generic [ref=e64]:
+          - paragraph [ref=e65]: 快速入口
+          - heading "桌面端第一眼先看到最关键的信息" [level=3] [ref=e66]
+        - button "个人中心 去登录或注册" [ref=e67] [cursor=pointer]:
+          - text: 个人中心
+          - strong [ref=e68]: 去登录或注册
+        - button "消息中心 系统通知 / 订单消息 / 活动提醒" [ref=e69] [cursor=pointer]:
+          - text: 消息中心
+          - strong [ref=e70]: 系统通知 / 订单消息 / 活动提醒
+        - generic [ref=e71]:
+          - generic [ref=e72]:
+            - generic [ref=e73]:
+              - paragraph [ref=e74]: 售后 QQ 群号
+              - paragraph [ref=e75]: 待填写
+            - button "复制" [ref=e76] [cursor=pointer]
+          - generic [ref=e77]:
+            - generic [ref=e78]:
+              - paragraph [ref=e79]: 工作人员联系方式(WeChat)
+              - paragraph [ref=e80]: WuWude-MrWang
+            - button "复制" [ref=e81] [cursor=pointer]
+      - article [ref=e82]:
+        - generic [ref=e84]:
+          - paragraph [ref=e85]: 连接步骤
+          - heading "校园网连接步骤" [level=3] [ref=e86]
+        - generic [ref=e87]:
+          - generic [ref=e88]:
+            - generic [ref=e89]: "1"
+            - generic [ref=e90]:
+              - heading "连接校园网" [level=4] [ref=e91]
+              - paragraph [ref=e92]: 连接 WIFI：AHUT-wifi6
+              - paragraph [ref=e93]: 先连接学校提供的无线网络，保持设备处于校园网环境中，再进入登录页面。使用移动数据或其它无线网无法完成登录。
+          - generic [ref=e94]:
+            - generic [ref=e95]: "2"
+            - generic [ref=e96]:
+              - heading "登录校园网" [level=4] [ref=e97]
+              - paragraph [ref=e98]: 输入学号和密码，账号密码与智慧校园一致，并选择中国电信。
+              - paragraph [ref=e99]: 正常连接后会弹出登录通知；如果没有弹出，可以在浏览器输入 10.255.255.154 进入登录页面。
+          - generic [ref=e100]:
+            - generic [ref=e101]: "3"
+            - generic [ref=e102]:
+              - heading "登录成功" [level=4] [ref=e103]
+              - paragraph [ref=e104]: 登录成功后即可正常上网。
+              - paragraph [ref=e105]: 看到登录成功提示后，就可以在宿舍、教学楼和公共区域正常访问校园网。
+      - article [ref=e106]:
+        - generic [ref=e108]:
+          - paragraph [ref=e109]: 问题类型
+          - heading "内容和 App 保持一致，但更适合桌面查看" [level=3] [ref=e110]
+        - generic [ref=e111]:
+          - generic [ref=e112]:
+            - button "1 连上 wifi 无法上网 已连接校园网无线信号，但页面无法正常打开或无法访问外网。" [ref=e113] [cursor=pointer]:
+              - generic [ref=e114]: "1"
+              - generic [ref=e115]:
+                - strong [ref=e116]: 连上 wifi 无法上网
+                - generic [ref=e117]: 已连接校园网无线信号，但页面无法正常打开或无法访问外网。
+            - button "2 显示运营商账户欠费 登录页面提示运营商账户欠费、套餐到期或余额不足。" [ref=e118] [cursor=pointer]:
+              - generic [ref=e119]: "2"
+              - generic [ref=e120]:
+                - strong [ref=e121]: 显示运营商账户欠费
+                - generic [ref=e122]: 登录页面提示运营商账户欠费、套餐到期或余额不足。
+            - button "3 运营商宽带账户错误或宽带密码错误 宽带密码错误需要重置，请按流程获取短信后填写宽带账号和新密码。" [ref=e123] [cursor=pointer]:
+              - generic [ref=e124]: "3"
+              - generic [ref=e125]:
+                - strong [ref=e126]: 运营商宽带账户错误或宽带密码错误
+                - generic [ref=e127]: 宽带密码错误需要重置，请按流程获取短信后填写宽带账号和新密码。
+            - button "4 账户不存在 登录页提示账号不存在，需要查看人工补充的处理指引。" [ref=e128] [cursor=pointer]:
+              - generic [ref=e129]: "4"
+              - generic [ref=e130]:
+                - strong [ref=e131]: 账户不存在
+                - generic [ref=e132]: 登录页提示账号不存在，需要查看人工补充的处理指引。
+            - button "5 显示设备终端超出或者终端 IP 已在线 旧设备未退出或终端占用异常，查看说明后可直接提交工单处理。" [ref=e133] [cursor=pointer]:
+              - generic [ref=e134]: "5"
+              - generic [ref=e135]:
+                - strong [ref=e136]: 显示设备终端超出或者终端 IP 已在线
+                - generic [ref=e137]: 旧设备未退出或终端占用异常，查看说明后可直接提交工单处理。
+            - button "6 显示请联系运营商解绑 登录页面明确提示需联系运营商解绑，点击查看说明。" [ref=e138] [cursor=pointer]:
+              - generic [ref=e139]: "6"
+              - generic [ref=e140]:
+                - strong [ref=e141]: 显示请联系运营商解绑
+                - generic [ref=e142]: 登录页面明确提示需联系运营商解绑，点击查看说明。
+            - button "7 会员领取 查看会员领取说明，并按说明领取相关权益。" [ref=e143] [cursor=pointer]:
+              - generic [ref=e144]: "7"
+              - generic [ref=e145]:
+                - strong [ref=e146]: 会员领取
+                - generic [ref=e147]: 查看会员领取说明，并按说明领取相关权益。
+            - button "8 其它问题或者未解决 未命中以上场景时，可先查看补充说明。" [ref=e148] [cursor=pointer]:
+              - generic [ref=e149]: "8"
+              - generic [ref=e150]:
+                - strong [ref=e151]: 其它问题或者未解决
+                - generic [ref=e152]: 未命中以上场景时，可先查看补充说明。
+          - generic [ref=e153]:
+            - paragraph [ref=e154]: 当前查看
+            - heading "连上 wifi 无法上网" [level=4] [ref=e155]
+            - paragraph [ref=e156]: 已连接校园网无线信号，但页面无法正常打开或无法访问外网。
+            - generic [ref=e157]:
+              - generic [ref=e158]: 处理方式
+              - paragraph [ref=e159]: 进入登录界面点击注销选择中国电信并登录，显示成功即可正常上网，显示别的可以查看下方处理方法
+      - article [ref=e160]:
+        - generic [ref=e162]:
+          - paragraph [ref=e163]: 售后与人工支持
+          - heading "桌面端也保留一键复制" [level=3] [ref=e164]
+        - generic [ref=e165]:
+          - generic [ref=e166]:
+            - generic [ref=e167]:
+              - paragraph [ref=e168]: 售后 QQ 群号
+              - paragraph [ref=e169]: 待填写
+            - button "复制QQ 群号" [ref=e170] [cursor=pointer]
+          - generic [ref=e171]:
+            - generic [ref=e172]:
+              - paragraph [ref=e173]: 工作人员联系方式(WeChat)
+              - paragraph [ref=e174]: WuWude-MrWang
+            - button "复制微信号" [ref=e175] [cursor=pointer]
+      - article [ref=e176]:
+        - generic [ref=e178]:
+          - paragraph [ref=e179]: 消息预览
+          - heading "移动端的三类消息在桌面端继续保留" [level=3] [ref=e180]
+        - generic [ref=e181]:
+          - generic [ref=e182]:
+            - strong [ref=e183]: 系统通知
+            - paragraph [ref=e184]: 后端维护、远程自动化运行状态和平台更新说明会集中放在这里。
+          - generic [ref=e185]:
+            - strong [ref=e186]: 订单消息
+            - paragraph [ref=e187]: 工单提交后会在这里提示状态变化，也方便桌面端统一回看处理进度。
+          - generic [ref=e188]:
+            - strong [ref=e189]: 活动提醒
+            - paragraph [ref=e190]: 与校园网套餐、会员领取和服务窗口相关的提醒会归到这一类。
+        - button "打开消息中心" [ref=e191] [cursor=pointer]

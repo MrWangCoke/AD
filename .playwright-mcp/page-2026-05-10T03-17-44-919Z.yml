@@ -1,0 +1,127 @@
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]: A
+      - generic [ref=e7]:
+        - paragraph [ref=e8]: Campus Service
+        - heading "校园网服务平台" [level=1] [ref=e9]
+    - navigation [ref=e10]:
+      - button "主页 绑定入口与问题说明" [ref=e11] [cursor=pointer]:
+        - generic [ref=e12]: 主页
+        - generic [ref=e13]: 绑定入口与问题说明
+      - button "消息 通知与常见提醒" [ref=e14] [cursor=pointer]:
+        - generic [ref=e15]: 消息
+        - generic [ref=e16]: 通知与常见提醒
+      - button "个人 登录、资料与工单" [ref=e17] [cursor=pointer]:
+        - generic [ref=e18]: 个人
+        - generic [ref=e19]: 登录、资料与工单
+    - generic [ref=e20]:
+      - paragraph [ref=e21]: 当前账号
+      - paragraph [ref=e22]: 张同学
+      - paragraph [ref=e23]: 手机号 13800138000
+      - generic [ref=e24]:
+        - generic [ref=e25]: 工单总数
+        - strong [ref=e26]: "3"
+  - main [ref=e27]:
+    - generic [ref=e28]:
+      - generic [ref=e29]:
+        - paragraph [ref=e30]: Desktop Workspace
+        - heading "个人" [level=2] [ref=e31]
+        - paragraph [ref=e32]: 在桌面端统一查看个人资料、工单状态和视觉偏好。
+      - generic [ref=e33]:
+        - generic [ref=e34]:
+          - generic [ref=e35]: 后端状态
+          - strong [ref=e36]: API 已接入
+        - generic [ref=e37]:
+          - generic [ref=e38]: 最近工单
+          - strong [ref=e39]: 新用户绑定 · 待处理
+        - generic [ref=e40]:
+          - generic [ref=e42]: 张
+          - generic [ref=e43]:
+            - paragraph [ref=e44]: 张同学
+            - paragraph [ref=e45]: 资料与工单同步中
+    - generic [ref=e46]:
+      - article [ref=e47]:
+        - generic [ref=e48]:
+          - generic [ref=e50]: 张
+          - generic [ref=e51]:
+            - paragraph [ref=e52]: 个人中心
+            - heading "张同学" [level=3] [ref=e53]
+            - paragraph [ref=e54]: 学号 2023123456 · 手机 13800138000
+        - generic [ref=e55]:
+          - button "刷新工单" [ref=e56] [cursor=pointer]
+          - button "退出登录" [ref=e57] [cursor=pointer]
+      - article [ref=e58]:
+        - generic [ref=e60]:
+          - paragraph [ref=e61]: 编辑资料
+          - heading "保持和 App 相同的资料字段" [level=3] [ref=e62]
+        - generic [ref=e63]:
+          - generic [ref=e64]:
+            - generic [ref=e65]: 姓名
+            - textbox "姓名" [ref=e66]:
+              - /placeholder: 请输入姓名
+              - text: 张同学
+          - generic [ref=e67]:
+            - generic [ref=e68]: 学号
+            - textbox "学号" [ref=e69]:
+              - /placeholder: 请输入学号
+              - text: "2023123456"
+          - generic [ref=e70]:
+            - generic [ref=e71]: 手机号
+            - textbox "手机号" [ref=e72]:
+              - /placeholder: 请输入手机号
+              - text: "13800138000"
+          - generic [ref=e73]:
+            - generic [ref=e74]: 头像地址
+            - textbox "头像地址" [ref=e75]:
+              - /placeholder: 可填写头像 URL，留空则使用默认占位
+        - button "保存资料" [ref=e77] [cursor=pointer]
+      - article [ref=e78]:
+        - generic [ref=e80]:
+          - paragraph [ref=e81]: 视觉偏好
+          - heading "把移动端的背景/玻璃强度换成桌面端环境控制" [level=3] [ref=e82]
+        - generic [ref=e83]:
+          - generic [ref=e84]:
+            - generic [ref=e85]: 背景柔和度
+            - strong [ref=e86]: 54%
+          - slider [ref=e87]: "0.54"
+        - generic [ref=e88]:
+          - generic [ref=e89]:
+            - generic [ref=e90]: 卡片通透度
+            - strong [ref=e91]: 86%
+          - slider [ref=e92]: "0.86"
+      - article [ref=e93]:
+        - generic [ref=e95]:
+          - paragraph [ref=e96]: 我的工单
+          - heading "绑定和自动化处理进度都从这里看" [level=3] [ref=e97]
+        - generic [ref=e98]:
+          - article [ref=e99]:
+            - generic [ref=e100]:
+              - generic [ref=e101]:
+                - strong [ref=e102]: 新用户绑定
+                - paragraph [ref=e103]: "# TK-202605130001"
+              - generic [ref=e104]: 待处理
+            - generic [ref=e105]:
+              - generic [ref=e106]: 学号 2023123456
+              - generic [ref=e107]: 提交时间 2026-05-10 09:20:00
+            - paragraph [ref=e108]: 待自动化处理
+          - article [ref=e109]:
+            - generic [ref=e110]:
+              - generic [ref=e111]:
+                - strong [ref=e112]: 宽带账号或密码错误
+                - paragraph [ref=e113]: "# TK-202605120018"
+              - generic [ref=e114]: 排队中
+            - generic [ref=e115]:
+              - generic [ref=e116]: 学号 2023123456
+              - generic [ref=e117]: 提交时间 2026-05-09 18:45:00
+            - paragraph [ref=e118]: 已进入处理队列
+          - article [ref=e119]:
+            - generic [ref=e120]:
+              - generic [ref=e121]:
+                - strong [ref=e122]: 账户不存在
+                - paragraph [ref=e123]: "# TK-202605100008"
+              - generic [ref=e124]: 已完成
+            - generic [ref=e125]:
+              - generic [ref=e126]: 学号 2023123456
+              - generic [ref=e127]: 提交时间 2026-05-08 11:10:00
+            - paragraph [ref=e128]: 已处理完成

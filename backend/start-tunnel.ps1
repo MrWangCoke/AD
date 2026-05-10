@@ -11,4 +11,4 @@ if (-not (Test-Path $cloudflared)) {
         -OutFile $cloudflared
 }
 
-& $cloudflared tunnel --config "$env:USERPROFILE\.cloudflared\config.yml" run ad-backend
+& $cloudflared tunnel --protocol http2 --config "$env:USERPROFILE\.cloudflared\config.yml" run ad-backend
