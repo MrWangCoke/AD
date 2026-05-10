@@ -104,7 +104,9 @@ private fun HomeScreen(
         Spacer(modifier = Modifier.height(18.dp))
 
         ProblemTypesPanel(
+            state = state,
             backdrop = backdrop,
+            onIntent = onIntent,
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -121,7 +123,9 @@ private fun HomeScreen(
 
 @Composable
 private fun ProblemTypesPanel(
+    state: HomeState,
     backdrop: LayerBackdrop,
+    onIntent: (HomeIntent) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var isDialogOpen by remember { mutableStateOf(false) }
@@ -161,7 +165,9 @@ private fun ProblemTypesPanel(
 
     if (isDialogOpen) {
         ProblemTypesDialog(
+            state = state,
             backdrop = backdrop,
+            onIntent = onIntent,
             onDismiss = { isDialogOpen = false }
         )
     }
@@ -169,7 +175,9 @@ private fun ProblemTypesPanel(
 
 @Composable
 private fun ProblemTypesDialog(
+    state: HomeState,
     backdrop: LayerBackdrop,
+    onIntent: (HomeIntent) -> Unit,
     onDismiss: () -> Unit
 ) {
     Dialog(onDismissRequest = onDismiss) {
@@ -234,7 +242,9 @@ private fun ProblemTypesDialog(
                         campusNetworkProblemTypes.forEach { problem ->
                             ProblemTypeItem(
                                 problem = problem,
-                                backdrop = backdrop
+                                backdrop = backdrop,
+                                state = state,
+                                onIntent = onIntent
                             )
                         }
                     }
@@ -247,11 +257,10 @@ private fun ProblemTypesDialog(
 @Composable
 private fun ProblemTypeItem(
     problem: CampusNetworkProblemType,
-    backdrop: LayerBackdrop
+    backdrop: LayerBackdrop,
+    state: HomeState,
+    onIntent: (HomeIntent) -> Unit
 ) {
-    var type3Message by remember { mutableStateOf("") }
-    val context = LocalContext.current
-
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -294,8 +303,8 @@ private fun ProblemTypeItem(
             )
             if (problem.typeNo == 3) {
                 OutlinedTextField(
-                    value = type3Message,
-                    onValueChange = { type3Message = it },
+                    value = state.type3SmsContent,
+                    onValueChange = { onIntent(HomeIntent.OnType3SmsContentChange(it)) },
                     label = { Text("粘贴短信内容") },
                     minLines = 3,
                     maxLines = 5,
@@ -313,12 +322,10 @@ private fun ProblemTypeItem(
                     modifier = Modifier.fillMaxWidth()
                 )
                 GlassButton(
-                    text = "提交",
+                    text = if (state.isSubmittingType3) "提交中..." else "提交",
                     backdrop = backdrop,
-                    onClick = {
-                        Toast.makeText(context, "类型 3 工单提交功能待接入", Toast.LENGTH_SHORT).show()
-                    },
-                    enabled = type3Message.isNotBlank(),
+                    onClick = { onIntent(HomeIntent.OnType3Submit) },
+                    enabled = state.type3SmsContent.isNotBlank() && !state.isSubmittingType3,
                     modifier = Modifier.fillMaxWidth()
                 )
             }

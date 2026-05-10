@@ -50,6 +50,41 @@ public class TicketService {
         return TicketResponse.from(ticketRepository.save(ticket));
     }
 
+    @Transactional
+    public TicketResponse createBroadbandPasswordTicket(CreateTicketRequest request) {
+        String studentId = normalize(request.studentId());
+        String phone = normalize(request.phone());
+        String broadbandAccount = normalize(request.broadbandAccount());
+        String newPassword = normalize(request.newPassword());
+
+        if (studentId.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "请先完善学号后再提交工单");
+        }
+        if (phone.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "请先完善手机号后再提交工单");
+        }
+        if (broadbandAccount.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "未识别到宽带账号");
+        }
+        if (newPassword.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "未识别到宽带密码");
+        }
+
+        User user = userRepository.findById(request.userId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "请先登录后再提交工单"));
+
+        Ticket ticket = new Ticket(
+                user,
+                studentId,
+                Ticket.TYPE_BROADBAND_PASSWORD,
+                broadbandAccount,
+                newPassword,
+                phone,
+                "待处理"
+        );
+        return TicketResponse.from(ticketRepository.save(ticket));
+    }
+
     @Transactional(readOnly = true)
     public List<TicketResponse> listByUser(Long userId) {
         if (!userRepository.existsById(userId)) {

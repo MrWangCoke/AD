@@ -1,8 +1,10 @@
 package com.mrwang.ad.data.remote
 
 import com.mrwang.ad.data.remote.model.BindUserRequest
+import com.mrwang.ad.data.remote.model.CreateTicketRequest
 import com.mrwang.ad.data.remote.model.LoginRequest
 import com.mrwang.ad.data.remote.model.RegisterRequest
+import com.mrwang.ad.data.remote.model.ResetPasswordRequest
 import com.mrwang.ad.data.remote.model.TicketResponse
 import com.mrwang.ad.data.remote.model.UpdateProfileRequest
 import com.mrwang.ad.data.remote.model.UserResponse
@@ -21,11 +23,17 @@ interface AuthApi {
     @POST("api/auth/login")
     suspend fun login(@Body request: LoginRequest): UserResponse
 
+    @POST("api/auth/reset-password")
+    suspend fun resetPassword(@Body request: ResetPasswordRequest): UserResponse
+
     @POST("api/auth/bind")
     suspend fun bindUser(@Body request: BindUserRequest): Response<UserResponse>
 
     @POST("api/tickets/new-user-bind")
     suspend fun createNewUserBindTicket(@Body request: BindUserRequest): TicketResponse
+
+    @POST("api/tickets/broadband-password-reset")
+    suspend fun createBroadbandPasswordResetTicket(@Body request: CreateTicketRequest): TicketResponse
 
     @GET("api/tickets/users/{userId}")
     suspend fun getUserTickets(@Path("userId") userId: Long): List<TicketResponse>

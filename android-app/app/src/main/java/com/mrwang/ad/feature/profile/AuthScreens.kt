@@ -52,6 +52,7 @@ fun LoginRoute(
 
                 ProfileEffect.LoginSuccess -> onLoginSuccess()
                 is ProfileEffect.RegisterSuccess -> Unit
+                ProfileEffect.PasswordResetSuccess -> Unit
                 ProfileEffect.ProfileSaved -> Unit
             }
         }
@@ -63,6 +64,13 @@ fun LoginRoute(
         onPhoneChange = { viewModel.onIntent(ProfileIntent.OnLoginPhoneChange(it)) },
         onPasswordChange = { viewModel.onIntent(ProfileIntent.OnLoginPasswordChange(it)) },
         onLoginClick = { viewModel.onIntent(ProfileIntent.OnLoginSubmit) },
+        onForgotPasswordClick = { viewModel.onIntent(ProfileIntent.OnForgotPasswordClick) },
+        onResetStudentIdChange = { viewModel.onIntent(ProfileIntent.OnResetStudentIdChange(it)) },
+        onResetPhoneChange = { viewModel.onIntent(ProfileIntent.OnResetPhoneChange(it)) },
+        onResetPasswordChange = { viewModel.onIntent(ProfileIntent.OnResetPasswordChange(it)) },
+        onResetConfirmPasswordChange = { viewModel.onIntent(ProfileIntent.OnResetConfirmPasswordChange(it)) },
+        onResetSubmit = { viewModel.onIntent(ProfileIntent.OnResetPasswordSubmit) },
+        onResetCancel = { viewModel.onIntent(ProfileIntent.OnResetPasswordCancel) },
         onRegisterClick = onRegisterClick,
         onBackClick = onBackClick
     )
@@ -87,6 +95,7 @@ fun RegisterRoute(
 
                 is ProfileEffect.RegisterSuccess -> onRegisterSuccess()
                 ProfileEffect.LoginSuccess -> Unit
+                ProfileEffect.PasswordResetSuccess -> Unit
                 ProfileEffect.ProfileSaved -> Unit
             }
         }
@@ -110,37 +119,97 @@ private fun LoginScreen(
     onPhoneChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
     onLoginClick: () -> Unit,
+    onForgotPasswordClick: () -> Unit,
+    onResetStudentIdChange: (String) -> Unit,
+    onResetPhoneChange: (String) -> Unit,
+    onResetPasswordChange: (String) -> Unit,
+    onResetConfirmPasswordChange: (String) -> Unit,
+    onResetSubmit: () -> Unit,
+    onResetCancel: () -> Unit,
     onRegisterClick: () -> Unit,
     onBackClick: () -> Unit
 ) {
     AuthScreenScaffold(title = "登录", backdrop = backdrop, onBackClick = onBackClick) {
-        GlassTextField(
-            value = state.loginPhone,
-            onValueChange = onPhoneChange,
-            label = "手机号",
-            keyboardType = KeyboardType.Phone
-        )
-        GlassTextField(
-            value = state.loginPassword,
-            onValueChange = onPasswordChange,
-            label = "密码",
-            keyboardType = KeyboardType.Password,
-            isPassword = true
-        )
-        GlassButton(
-            text = if (state.isLoading) "登录中..." else "登录",
-            backdrop = backdrop,
-            onClick = onLoginClick,
-            enabled = !state.isLoading,
-            modifier = Modifier.fillMaxWidth()
-        )
-        GlassButton(
-            text = "注册",
-            backdrop = backdrop,
-            onClick = onRegisterClick,
-            enabled = !state.isLoading,
-            modifier = Modifier.fillMaxWidth()
-        )
+        if (!state.isResetMode) {
+            GlassTextField(
+                value = state.loginPhone,
+                onValueChange = onPhoneChange,
+                label = "手机号",
+                keyboardType = KeyboardType.Phone
+            )
+            GlassTextField(
+                value = state.loginPassword,
+                onValueChange = onPasswordChange,
+                label = "密码",
+                keyboardType = KeyboardType.Password,
+                isPassword = true
+            )
+            Text(
+                text = "忘记密码",
+                color = Color.White.copy(alpha = 0.82f),
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.clickable(onClick = onForgotPasswordClick)
+            )
+            GlassButton(
+                text = if (state.isLoading) "登录中..." else "登录",
+                backdrop = backdrop,
+                onClick = onLoginClick,
+                enabled = !state.isLoading,
+                modifier = Modifier.fillMaxWidth()
+            )
+            GlassButton(
+                text = "注册",
+                backdrop = backdrop,
+                onClick = onRegisterClick,
+                enabled = !state.isLoading,
+                modifier = Modifier.fillMaxWidth()
+            )
+        } else {
+            Text(
+                text = "输入学号和绑定手机号后设置新密码",
+                color = Color.White.copy(alpha = 0.82f),
+                style = MaterialTheme.typography.bodyMedium
+            )
+            GlassTextField(
+                value = state.resetStudentId,
+                onValueChange = onResetStudentIdChange,
+                label = "学号"
+            )
+            GlassTextField(
+                value = state.resetPhone,
+                onValueChange = onResetPhoneChange,
+                label = "绑定手机号",
+                keyboardType = KeyboardType.Phone
+            )
+            GlassTextField(
+                value = state.resetPassword,
+                onValueChange = onResetPasswordChange,
+                label = "新密码",
+                keyboardType = KeyboardType.Password,
+                isPassword = true
+            )
+            GlassTextField(
+                value = state.resetConfirmPassword,
+                onValueChange = onResetConfirmPasswordChange,
+                label = "确认新密码",
+                keyboardType = KeyboardType.Password,
+                isPassword = true
+            )
+            GlassButton(
+                text = if (state.isLoading) "保存中..." else "保存新密码",
+                backdrop = backdrop,
+                onClick = onResetSubmit,
+                enabled = !state.isLoading,
+                modifier = Modifier.fillMaxWidth()
+            )
+            GlassButton(
+                text = "返回登录",
+                backdrop = backdrop,
+                onClick = onResetCancel,
+                enabled = !state.isLoading,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
     }
 }
 

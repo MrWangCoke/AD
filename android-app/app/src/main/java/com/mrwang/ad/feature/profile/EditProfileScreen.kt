@@ -76,6 +76,7 @@ fun EditProfileRoute(
                 ProfileEffect.ProfileSaved -> onBackClick()
                 ProfileEffect.LoginSuccess -> Unit
                 is ProfileEffect.RegisterSuccess -> Unit
+                ProfileEffect.PasswordResetSuccess -> Unit
             }
         }
     }

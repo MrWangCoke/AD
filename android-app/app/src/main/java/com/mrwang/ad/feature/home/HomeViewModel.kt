@@ -36,7 +36,9 @@ class HomeViewModel(
         when (intent) {
             is HomeIntent.OnStudentIdChange -> _state.update { it.copy(studentId = intent.value) }
             is HomeIntent.OnCampusPhoneChange -> _state.update { it.copy(campusPhone = intent.value) }
+            is HomeIntent.OnType3SmsContentChange -> _state.update { it.copy(type3SmsContent = intent.value) }
             HomeIntent.OnBindSubmit -> bindUser()
+            HomeIntent.OnType3Submit -> submitType3Ticket()
         }
     }
 
@@ -102,8 +104,65 @@ class HomeViewModel(
         _state.update {
             it.copy(
                 currentUserId = user?.id ?: 0L,
-                currentUserPhone = user?.phone.orEmpty()
+                currentUserPhone = user?.phone.orEmpty(),
+                currentUserStudentId = user?.studentId.orEmpty()
             )
+        }
+    }
+
+    private fun submitType3Ticket() {
+        viewModelScope.launch {
+            refreshCachedUser()
+            val snapshot = _state.value
+            val smsContent = snapshot.type3SmsContent.trim()
+
+            if (snapshot.currentUserId <= 0L) {
+                _effect.emit(HomeEffect.ShowMessage("请先登录后再提交工单"))
+                return@launch
+            }
+            if (snapshot.currentUserStudentId.isBlank()) {
+                _effect.emit(HomeEffect.ShowMessage("请先在个人中心完善学号"))
+                return@launch
+            }
+            if (snapshot.currentUserPhone.isBlank()) {
+                _effect.emit(HomeEffect.ShowMessage("请先在个人中心完善手机号"))
+                return@launch
+            }
+            if (smsContent.isBlank()) {
+                _effect.emit(HomeEffect.ShowMessage("请先粘贴短信内容"))
+                return@launch
+            }
+
+            val broadbandAccount = parseBroadbandAccount(smsContent)
+            val newPassword = parseBroadbandPassword(smsContent)
+            if (broadbandAccount == null || newPassword == null) {
+                _effect.emit(HomeEffect.ShowMessage("短信内容识别失败，请检查是否为完整模板"))
+                return@launch
+            }
+
+            _state.update { it.copy(isSubmittingType3 = true) }
+            val result = authRepository.createBroadbandPasswordResetTicket(
+                userId = snapshot.currentUserId,
+                studentId = snapshot.currentUserStudentId,
+                phone = snapshot.currentUserPhone,
+                broadbandAccount = broadbandAccount,
+                newPassword = newPassword
+            )
+            _state.update { it.copy(isSubmittingType3 = false) }
+
+            result
+                .onSuccess { ticket ->
+                    _state.update {
+                        it.copy(
+                            type3SmsContent = "",
+                            latestTicketNo = ticket.ticketNo
+                        )
+                    }
+                    _effect.emit(HomeEffect.ShowMessage("宽带密码重置工单已提交"))
+                }
+                .onFailure { error ->
+                    _effect.emit(HomeEffect.ShowMessage(error.message ?: "工单提交失败"))
+                }
         }
     }
 
@@ -111,5 +170,15 @@ class HomeViewModel(
         viewModelScope.launch {
             _effect.emit(HomeEffect.ShowMessage(message))
         }
+    }
+
+    private fun parseBroadbandAccount(message: String): String? {
+        val match = Regex("为(\\d+)的").find(message) ?: return null
+        return match.groupValues.getOrNull(1)?.takeIf { it.isNotBlank() }
+    }
+
+    private fun parseBroadbandPassword(message: String): String? {
+        val match = Regex("重置为(\\d{6})").find(message) ?: return null
+        return match.groupValues.getOrNull(1)?.takeIf { it.length == 6 }
     }
 }

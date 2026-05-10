@@ -71,4 +71,8 @@ public class User {
         this.studentId = studentId;
         this.avatarUrl = avatarUrl;
     }
+
+    public void updatePasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
+    }
 }

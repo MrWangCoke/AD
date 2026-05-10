@@ -3,6 +3,7 @@ package dx.ahut.adbackend.auth;
 import dx.ahut.adbackend.auth.AuthDtos.BindUserRequest;
 import dx.ahut.adbackend.auth.AuthDtos.LoginRequest;
 import dx.ahut.adbackend.auth.AuthDtos.RegisterRequest;
+import dx.ahut.adbackend.auth.AuthDtos.ResetPasswordRequest;
 import dx.ahut.adbackend.auth.AuthDtos.UpdateProfileRequest;
 import dx.ahut.adbackend.auth.AuthDtos.UserResponse;
 import org.springframework.http.HttpStatus;
@@ -78,6 +79,30 @@ public class AuthService {
         User user = userRepository.findByPhoneAndStudentId(phone, studentId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "未找到匹配用户，请先注册或检查手机号和学号"));
         return UserResponse.from(user);
+    }
+
+    @Transactional
+    public UserResponse resetPassword(ResetPasswordRequest request) {
+        String phone = normalize(request.phone());
+        String studentId = normalize(request.studentId());
+        String newPassword = normalize(request.newPassword());
+        String confirmPassword = normalize(request.confirmPassword());
+
+        validatePhone(phone);
+        if (studentId.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "请输入学号");
+        }
+        if (newPassword.isBlank() || confirmPassword.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "请输入新密码和确认密码");
+        }
+        if (!newPassword.equals(confirmPassword)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "两次密码不一致");
+        }
+
+        User user = userRepository.findByPhoneAndStudentId(phone, studentId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "学号和手机号不匹配"));
+        user.updatePasswordHash(passwordEncoder.encode(newPassword));
+        return UserResponse.from(userRepository.save(user));
     }
 
     @Transactional

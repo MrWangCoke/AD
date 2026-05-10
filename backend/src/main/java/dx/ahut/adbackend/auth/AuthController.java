@@ -3,6 +3,7 @@ package dx.ahut.adbackend.auth;
 import dx.ahut.adbackend.auth.AuthDtos.LoginRequest;
 import dx.ahut.adbackend.auth.AuthDtos.RegisterRequest;
 import dx.ahut.adbackend.auth.AuthDtos.BindUserRequest;
+import dx.ahut.adbackend.auth.AuthDtos.ResetPasswordRequest;
 import dx.ahut.adbackend.auth.AuthDtos.UpdateProfileRequest;
 import dx.ahut.adbackend.auth.AuthDtos.UserResponse;
 import jakarta.validation.Valid;
@@ -36,6 +37,11 @@ public class AuthController {
     @PostMapping("/bind")
     public UserResponse bind(@Valid @RequestBody BindUserRequest request) {
         return authService.bind(request);
+    }
+
+    @PostMapping("/reset-password")
+    public UserResponse resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        return authService.resetPassword(request);
     }
 
     @PutMapping("/profile/{id}")

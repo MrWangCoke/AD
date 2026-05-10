@@ -26,6 +26,14 @@ public final class AuthDtos {
     ) {
     }
 
+    public record ResetPasswordRequest(
+            @NotBlank String studentId,
+            @NotBlank String phone,
+            @NotBlank String newPassword,
+            @NotBlank String confirmPassword
+    ) {
+    }
+
     public record UpdateProfileRequest(
             @NotBlank String phone,
             @NotBlank String name,

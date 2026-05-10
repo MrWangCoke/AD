@@ -2,8 +2,10 @@ package com.mrwang.ad.data.repository
 
 import com.mrwang.ad.BuildConfig
 import com.mrwang.ad.data.remote.model.BindUserRequest
+import com.mrwang.ad.data.remote.model.CreateTicketRequest
 import com.mrwang.ad.data.remote.model.LoginRequest
 import com.mrwang.ad.data.remote.model.RegisterRequest
+import com.mrwang.ad.data.remote.model.ResetPasswordRequest
 import com.mrwang.ad.data.remote.model.TicketResponse
 import com.mrwang.ad.data.remote.model.UpdateProfileRequest
 import com.mrwang.ad.data.remote.model.UserResponse
@@ -41,6 +43,24 @@ class AuthRepository(
         }
     }
 
+    suspend fun resetPassword(
+        studentId: String,
+        phone: String,
+        newPassword: String,
+        confirmPassword: String
+    ): Result<UserResponse> {
+        return callAuth {
+            api.resetPassword(
+                ResetPasswordRequest(
+                    studentId = studentId,
+                    phone = phone,
+                    newPassword = newPassword,
+                    confirmPassword = confirmPassword
+                )
+            )
+        }
+    }
+
     suspend fun bindUser(userId: Long, studentId: String, phone: String): Result<TicketResponse> {
         return callTicket {
             api.createNewUserBindTicket(
@@ -48,6 +68,27 @@ class AuthRepository(
                     userId = userId,
                     studentId = studentId,
                     phone = phone
+                )
+            )
+        }
+    }
+
+    suspend fun createBroadbandPasswordResetTicket(
+        userId: Long,
+        studentId: String,
+        phone: String,
+        broadbandAccount: String,
+        newPassword: String
+    ): Result<TicketResponse> {
+        return callTicket {
+            api.createBroadbandPasswordResetTicket(
+                CreateTicketRequest(
+                    ticketType = 3,
+                    userId = userId,
+                    studentId = studentId,
+                    phone = phone,
+                    broadbandAccount = broadbandAccount,
+                    newPassword = newPassword
                 )
             )
         }

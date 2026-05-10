@@ -11,11 +11,27 @@ data class LoginRequest(
     val password: String
 )
 
+data class ResetPasswordRequest(
+    val studentId: String,
+    val phone: String,
+    val newPassword: String,
+    val confirmPassword: String
+)
+
 data class BindUserRequest(
     val userId: Long,
     val studentId: String,
     val phone: String,
     val ticketType: Int = 1
+)
+
+data class CreateTicketRequest(
+    val ticketType: Int,
+    val userId: Long,
+    val studentId: String,
+    val phone: String,
+    val broadbandAccount: String? = null,
+    val newPassword: String? = null
 )
 
 data class UpdateProfileRequest(

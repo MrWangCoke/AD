@@ -38,6 +38,13 @@ class ProfileViewModel(
         when (intent) {
             is ProfileIntent.OnLoginPhoneChange -> _state.update { it.copy(loginPhone = intent.value) }
             is ProfileIntent.OnLoginPasswordChange -> _state.update { it.copy(loginPassword = intent.value) }
+            ProfileIntent.OnForgotPasswordClick -> startResetPassword()
+            is ProfileIntent.OnResetStudentIdChange -> _state.update { it.copy(resetStudentId = intent.value) }
+            is ProfileIntent.OnResetPhoneChange -> _state.update { it.copy(resetPhone = intent.value) }
+            is ProfileIntent.OnResetPasswordChange -> _state.update { it.copy(resetPassword = intent.value) }
+            is ProfileIntent.OnResetConfirmPasswordChange -> _state.update { it.copy(resetConfirmPassword = intent.value) }
+            ProfileIntent.OnResetPasswordSubmit -> resetPassword()
+            ProfileIntent.OnResetPasswordCancel -> cancelResetPassword()
             is ProfileIntent.OnRegisterPhoneChange -> _state.update { it.copy(registerPhone = intent.value) }
             is ProfileIntent.OnRegisterPasswordChange -> _state.update { it.copy(registerPassword = intent.value) }
             is ProfileIntent.OnRegisterConfirmPasswordChange -> _state.update { it.copy(registerConfirmPassword = intent.value) }
@@ -67,6 +74,11 @@ class ProfileViewModel(
                             editPhone = "",
                             editAvatarUrl = null,
                             loginPassword = "",
+                            resetStudentId = "",
+                            resetPhone = "",
+                            resetPassword = "",
+                            resetConfirmPassword = "",
+                            isResetMode = false,
                             tickets = emptyList()
                         )
                     }
@@ -181,6 +193,90 @@ class ProfileViewModel(
         }
     }
 
+    private fun startResetPassword() {
+        val snapshot = _state.value
+        _state.update {
+            it.copy(
+                isResetMode = true,
+                resetStudentId = if (snapshot.studentId != "--") snapshot.studentId else "",
+                resetPhone = snapshot.loginPhone.ifBlank { if (snapshot.phone != "--") snapshot.phone else "" },
+                resetPassword = "",
+                resetConfirmPassword = ""
+            )
+        }
+    }
+
+    private fun cancelResetPassword() {
+        _state.update {
+            it.copy(
+                isResetMode = false,
+                resetStudentId = "",
+                resetPhone = "",
+                resetPassword = "",
+                resetConfirmPassword = ""
+            )
+        }
+    }
+
+    private fun resetPassword() {
+        val snapshot = _state.value
+        val studentId = snapshot.resetStudentId.trim()
+        val phone = snapshot.resetPhone.trim()
+        val newPassword = snapshot.resetPassword
+        val confirmPassword = snapshot.resetConfirmPassword
+
+        if (studentId.isBlank()) {
+            emitMessage("请输入学号")
+            return
+        }
+        if (phone.isBlank()) {
+            emitMessage("请输入绑定手机号")
+            return
+        }
+        if (!PhoneValidator.isValidMainlandPhone(phone)) {
+            emitMessage("请输入正确的11位手机号")
+            return
+        }
+        if (newPassword.isBlank() || confirmPassword.isBlank()) {
+            emitMessage("请输入新密码和确认密码")
+            return
+        }
+        if (newPassword != confirmPassword) {
+            emitMessage("两次密码不一致")
+            return
+        }
+
+        viewModelScope.launch {
+            _state.update { it.copy(isLoading = true) }
+            val result = authRepository.resetPassword(
+                studentId = studentId,
+                phone = phone,
+                newPassword = newPassword,
+                confirmPassword = confirmPassword
+            )
+            _state.update { it.copy(isLoading = false) }
+            result
+                .onSuccess { user ->
+                    _state.update {
+                        it.copy(
+                            loginPhone = user.phone,
+                            loginPassword = "",
+                            resetStudentId = "",
+                            resetPhone = "",
+                            resetPassword = "",
+                            resetConfirmPassword = "",
+                            isResetMode = false
+                        )
+                    }
+                    _effect.emit(ProfileEffect.ShowMessage("密码已重置，请使用新密码登录"))
+                    _effect.emit(ProfileEffect.PasswordResetSuccess)
+                }
+                .onFailure { error ->
+                    _effect.emit(ProfileEffect.ShowMessage(error.message ?: "密码重置失败"))
+                }
+        }
+    }
+
     private fun register() {
         val snapshot = _state.value
         if (snapshot.registerPhone.isBlank() || snapshot.registerPassword.isBlank() || snapshot.registerConfirmPassword.isBlank()) {
@@ -214,6 +310,11 @@ class ProfileViewModel(
                         it.copy(
                             loginPhone = user.phone,
                             loginPassword = "",
+                            resetStudentId = "",
+                            resetPhone = "",
+                            resetPassword = "",
+                            resetConfirmPassword = "",
+                            isResetMode = false,
                             registerPhone = "",
                             registerPassword = "",
                             registerConfirmPassword = ""

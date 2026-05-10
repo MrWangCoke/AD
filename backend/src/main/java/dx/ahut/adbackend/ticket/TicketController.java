@@ -26,6 +26,11 @@ public class TicketController {
         return ticketService.createNewUserBindTicket(request);
     }
 
+    @PostMapping("/broadband-password-reset")
+    public TicketResponse createBroadbandPasswordTicket(@Valid @RequestBody CreateTicketRequest request) {
+        return ticketService.createBroadbandPasswordTicket(request);
+    }
+
     @GetMapping("/pending")
     public List<TicketResponse> listPendingTickets() {
         return ticketService.listPendingTickets();
