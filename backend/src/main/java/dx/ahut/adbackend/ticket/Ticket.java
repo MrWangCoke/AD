@@ -9,7 +9,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 
@@ -76,11 +75,11 @@ public class Ticket {
         this.resultMessage = resultMessage;
     }
 
-    @PrePersist
-    void assignTicketNo() {
-        if (ticketNo == null || ticketNo.isBlank()) {
-            ticketNo = "TK-" + System.currentTimeMillis();
-        }
+    public void assignTicketNo(String ticketNo) {
+        this.ticketNo = ticketNo;
+    }
+
+    public void ensurePendingStatus() {
         if (status == null) {
             status = STATUS_PENDING;
         }

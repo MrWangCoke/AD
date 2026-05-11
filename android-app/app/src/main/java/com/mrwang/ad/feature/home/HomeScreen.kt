@@ -607,15 +607,6 @@ private fun NewUserBindPanel(
                 enabled = !state.isBinding,
                 modifier = Modifier.fillMaxWidth()
             )
-
-            if (state.boundStudentId.isNotBlank() && state.boundPhone.isNotBlank()) {
-                Text(
-                    text = "工单已提交：${state.boundStudentId} / ${state.boundPhone}"
-                            + state.latestTicketNo.ifBlank { "" }.let { if (it.isBlank()) "" else " / $it" },
-                    color = Color.White.copy(alpha = 0.86f),
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
         }
     }
 }

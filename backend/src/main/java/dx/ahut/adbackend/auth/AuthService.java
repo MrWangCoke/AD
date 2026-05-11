@@ -6,6 +6,7 @@ import dx.ahut.adbackend.auth.AuthDtos.RegisterRequest;
 import dx.ahut.adbackend.auth.AuthDtos.ResetPasswordRequest;
 import dx.ahut.adbackend.auth.AuthDtos.UpdateProfileRequest;
 import dx.ahut.adbackend.auth.AuthDtos.UserResponse;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -48,7 +49,11 @@ public class AuthService {
                 "未填写",
                 null
         );
-        return UserResponse.from(userRepository.save(user));
+        try {
+            return UserResponse.from(userRepository.saveAndFlush(user));
+        } catch (DataIntegrityViolationException error) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "该号码已注册");
+        }
     }
 
     @Transactional(readOnly = true)
@@ -102,7 +107,7 @@ public class AuthService {
         User user = userRepository.findByPhoneAndStudentId(phone, studentId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "学号和手机号不匹配"));
         user.updatePasswordHash(passwordEncoder.encode(newPassword));
-        return UserResponse.from(userRepository.save(user));
+        return UserResponse.from(userRepository.saveAndFlush(user));
     }
 
     @Transactional
@@ -129,7 +134,11 @@ public class AuthService {
                 });
 
         user.updateProfile(phone, name, studentId, avatarUrl);
-        return UserResponse.from(userRepository.save(user));
+        try {
+            return UserResponse.from(userRepository.saveAndFlush(user));
+        } catch (DataIntegrityViolationException error) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "该手机号已被其他用户使用");
+        }
     }
 
     private static String normalize(String value) {
