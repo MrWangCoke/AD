@@ -4,9 +4,12 @@ import dx.ahut.adbackend.auth.User;
 import dx.ahut.adbackend.auth.UserRepository;
 import dx.ahut.adbackend.ticket.TicketDtos.CreateTicketRequest;
 import dx.ahut.adbackend.ticket.TicketDtos.TicketResponse;
+import dx.ahut.adbackend.ticket.queue.TicketQueuePublisher;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.List;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -19,11 +22,7 @@ import org.springframework.web.server.ResponseStatusException;
 public class TicketService {
 
     private static final String MAINLAND_PHONE_PATTERN = "^1[3-9]\\d{9}$";
-    private static final List<Integer> OPEN_TICKET_STATUSES = List.of(
-            Ticket.STATUS_PENDING,
-            Ticket.STATUS_QUEUED,
-            Ticket.STATUS_PROCESSING
-    );
+    private static final Duration NEW_USER_BIND_COOLDOWN = Duration.ofMinutes(1);
     private static final int DEFAULT_PENDING_LIMIT = 100;
     private static final int MAX_PENDING_LIMIT = 500;
     private static final int TICKET_NO_RETRY_LIMIT = 2;
@@ -31,16 +30,19 @@ public class TicketService {
     private final TicketRepository ticketRepository;
     private final UserRepository userRepository;
     private final TicketNumberGenerator ticketNumberGenerator;
+    private final TicketQueuePublisher ticketQueuePublisher;
     private final ConcurrentMap<String, Object> newUserBindLocks = new ConcurrentHashMap<>();
 
     public TicketService(
             TicketRepository ticketRepository,
             UserRepository userRepository,
-            TicketNumberGenerator ticketNumberGenerator
+            TicketNumberGenerator ticketNumberGenerator,
+            TicketQueuePublisher ticketQueuePublisher
     ) {
         this.ticketRepository = ticketRepository;
         this.userRepository = userRepository;
         this.ticketNumberGenerator = ticketNumberGenerator;
+        this.ticketQueuePublisher = ticketQueuePublisher;
     }
 
     @Transactional
@@ -61,19 +63,21 @@ public class TicketService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "请将该账号手机号改成电信校园卡号码");
         }
 
-        String bindKey = user.getId() + ":" + studentId + ":" + phone;
+        String bindKey = String.valueOf(user.getId());
         Object lock = newUserBindLocks.computeIfAbsent(bindKey, ignored -> new Object());
         synchronized (lock) {
-            return ticketRepository.findFirstByUserIdAndStudentIdAndPhoneAndTicketTypeAndStatusInOrderByCreatedAtDesc(
-                            user.getId(),
-                            studentId,
-                            phone,
-                            Ticket.TYPE_NEW_USER_BIND,
-                            OPEN_TICKET_STATUSES
-                    )
-                    .map(TicketResponse::from)
-                    .orElseGet(() -> createOpenNewUserBindTicket(user, studentId, phone, request));
+            rejectIfNewUserBindSubmittedTooSoon(user.getId());
+            return createOpenNewUserBindTicket(user, studentId, phone, request);
         }
+    }
+
+    private void rejectIfNewUserBindSubmittedTooSoon(Long userId) {
+        LocalDateTime cooldownStartedAt = LocalDateTime.now().minus(NEW_USER_BIND_COOLDOWN);
+        ticketRepository.findFirstByUserIdAndTicketTypeOrderByCreatedAtDesc(userId, Ticket.TYPE_NEW_USER_BIND)
+                .filter(ticket -> ticket.getCreatedAt() == null || ticket.getCreatedAt().isAfter(cooldownStartedAt))
+                .ifPresent(ticket -> {
+                    throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "多次提交请等待一分钟");
+                });
     }
 
     private TicketResponse createOpenNewUserBindTicket(
@@ -92,7 +96,9 @@ public class TicketService {
                 "待处理"
         );
         try {
-            return TicketResponse.from(saveWithTicketNoRetry(ticket));
+            Ticket savedTicket = saveWithTicketNoRetry(ticket);
+            ticketQueuePublisher.publishCreated(savedTicket);
+            return TicketResponse.from(savedTicket);
         } catch (DataIntegrityViolationException error) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "工单提交冲突，请稍后重试");
         }
@@ -132,7 +138,9 @@ public class TicketService {
                 "待处理"
         );
         try {
-            return TicketResponse.from(saveWithTicketNoRetry(ticket));
+            Ticket savedTicket = saveWithTicketNoRetry(ticket);
+            ticketQueuePublisher.publishCreated(savedTicket);
+            return TicketResponse.from(savedTicket);
         } catch (DataIntegrityViolationException error) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "工单提交冲突，请稍后重试");
         }

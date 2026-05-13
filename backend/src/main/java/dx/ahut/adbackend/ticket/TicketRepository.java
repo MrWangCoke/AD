@@ -1,6 +1,5 @@
 package dx.ahut.adbackend.ticket;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Pageable;
@@ -14,11 +13,8 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
 
     List<Ticket> findByStatusOrderByCreatedAtAsc(Integer status, Pageable pageable);
 
-    Optional<Ticket> findFirstByUserIdAndStudentIdAndPhoneAndTicketTypeAndStatusInOrderByCreatedAtDesc(
+    Optional<Ticket> findFirstByUserIdAndTicketTypeOrderByCreatedAtDesc(
             Long userId,
-            String studentId,
-            String phone,
-            Integer ticketType,
-            Collection<Integer> statuses
+            Integer ticketType
     );
 }

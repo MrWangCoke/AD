@@ -235,6 +235,11 @@ async function handleBindSubmit() {
     homeForm.studentId = ''
     homeForm.campusPhone = ''
     tickets.value = [ticket, ...tickets.value.filter((item) => item.id !== ticket.id)]
+    const refreshedTickets = await refreshTickets()
+    if (!isSubmittedTicketVisible(refreshedTickets, ticket)) {
+      pushToast('提交返回成功，但刷新后未看到该工单，请检查后端接口地址或数据库连接', 'warning')
+      return
+    }
     pushToast('绑定工单已提交', 'success')
   } catch (error) {
     pushToast(error.message || '绑定失败', 'error')
@@ -326,6 +331,11 @@ async function handleType3Submit() {
     type3SmsContent.value = ''
     latestSubmission.ticketNo = ticket.ticketNo || latestSubmission.ticketNo
     tickets.value = [ticket, ...tickets.value.filter((item) => item.id !== ticket.id)]
+    const refreshedTickets = await refreshTickets()
+    if (!isSubmittedTicketVisible(refreshedTickets, ticket)) {
+      pushToast('提交返回成功，但刷新后未看到该工单，请检查后端接口地址或数据库连接', 'warning')
+      return
+    }
     pushToast('宽带密码重置工单已提交', 'success')
   } catch (error) {
     pushToast(error.message || '工单提交失败', 'error')
@@ -335,16 +345,23 @@ async function handleType3Submit() {
 }
 
 async function refreshTickets() {
-  if (!currentUser.value?.id) return
+  if (!currentUser.value?.id) return []
 
   isTicketsLoading.value = true
   try {
     tickets.value = await fetchUserTickets(currentUser.value.id)
+    return tickets.value
   } catch (error) {
     pushToast(error.message || '工单加载失败', 'error')
+    return null
   } finally {
     isTicketsLoading.value = false
   }
+}
+
+function isSubmittedTicketVisible(refreshedTickets, ticket) {
+  if (!Array.isArray(refreshedTickets) || !ticket?.id) return false
+  return refreshedTickets.some((item) => item.id === ticket.id)
 }
 
 function openProfileModal() {

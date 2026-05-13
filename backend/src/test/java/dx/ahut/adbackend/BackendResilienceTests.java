@@ -29,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.server.ResponseStatusException;
@@ -52,6 +53,9 @@ class BackendResilienceTests {
 
     @Autowired
     private TicketRepository ticketRepository;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     @BeforeEach
     void clearDatabase() {
@@ -111,7 +115,7 @@ class BackendResilienceTests {
     }
 
     @Test
-    void newUserBindTicketIsIdempotentForOpenTicket() {
+    void newUserBindTicketRejectsWithinOneMinuteAndAllowsLaterSubmit() {
         UserResponse user = authService.register(new RegisterRequest("13900000003", "123456", "123456"));
         CreateTicketRequest request = new CreateTicketRequest(
                 Ticket.TYPE_NEW_USER_BIND,
@@ -123,10 +127,24 @@ class BackendResilienceTests {
         );
 
         TicketResponse first = ticketService.createNewUserBindTicket(request);
+
+        try {
+            ticketService.createNewUserBindTicket(request);
+        } catch (ResponseStatusException error) {
+            assertThat(error.getStatusCode().value()).isEqualTo(429);
+            assertThat(error.getReason()).isEqualTo("多次提交请等待一分钟");
+        }
+        assertThat(ticketRepository.findAll()).hasSize(1);
+
+        jdbcTemplate.update(
+                "UPDATE tickets SET created_at = DATEADD('MINUTE', -2, CURRENT_TIMESTAMP) WHERE id = ?",
+                first.id()
+        );
+
         TicketResponse second = ticketService.createNewUserBindTicket(request);
 
-        assertThat(second.id()).isEqualTo(first.id());
-        assertThat(ticketRepository.findAll()).hasSize(1);
+        assertThat(second.id()).isNotEqualTo(first.id());
+        assertThat(ticketRepository.findAll()).hasSize(2);
     }
 
     @Test

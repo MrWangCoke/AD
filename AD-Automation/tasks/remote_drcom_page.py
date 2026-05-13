@@ -7,6 +7,7 @@ from datetime import datetime
 
 from config import (
     ACCOUNT_INPUT_IMAGE_PATH,
+    ACCOUNT_BOUND_WARNING_IMAGE_PATH,
     BASE_DIR,
     BROADBAND_ACCOUNT_INPUT_IMAGE_PATH,
     BROADBAND_PASSWORD_INPUT_IMAGE_PATH,
@@ -19,8 +20,10 @@ from config import (
     REMOTE_EDIT_PROFILE_IMAGE_PATH,
     REMOTE_LOGIN_BUTTON_IMAGE_PATH,
     REMOTE_SYSTEM_MENU_IMAGE_PATH,
+    OPERATION_SUCCESS_IMAGE_PATH,
     STUDENT_ID_INPUT_IMAGE_PATH,
     TICKET_CURSOR_PATH,
+    USER_LIST_IMAGE_PATH,
 )
 from tasks.dom_utils import click_visible_text_by_dom, print_visible_text_diagnostics
 from tasks.image_automation import (
@@ -47,6 +50,10 @@ CAPTCHA_TOP_OFFSET = 2
 CAPTCHA_COMBINED_WIDTH = CAPTCHA_IMAGE_WIDTH
 CAPTCHA_COMBINED_HEIGHT = CAPTCHA_IMAGE_HEIGHT
 _captcha_predict_function = None
+
+RESULT_SUCCESS = "自动化处理完成"
+RESULT_STUDENT_NOT_FOUND = "学号未查询到"
+RESULT_CONTACT_STAFF = "请联系工作人员"
 
 
 
@@ -293,6 +300,53 @@ def cleanup_captcha_images(cleanup_paths):
                 print("已删除临时验证码图片:", file_path)
         except Exception as error:
             print("删除临时验证码图片失败:", file_path, error)
+
+
+def has_visible_text(page, text, prefer_exact_match=False):
+    target_texts = text if isinstance(text, list) else [text]
+    options = {
+        "targetTexts": [value.replace(" ", "").lower() for value in target_texts],
+        "preferExactMatch": prefer_exact_match,
+    }
+
+    for frame in page.frames:
+        try:
+            found = frame.evaluate(
+                """options => {
+                    const candidates = Array.from(document.querySelectorAll(
+                        'button,a,input[type="button"],input[type="submit"],.btn,.verification,span,div,td,th,li,tr,[role="button"],[role="menuitem"],body'
+                    ));
+                    return candidates.some(el => {
+                        const style = window.getComputedStyle(el);
+                        const rect = el.getBoundingClientRect();
+                        const value = [
+                            el.innerText,
+                            el.value,
+                            el.textContent,
+                            el.getAttribute('title'),
+                            el.getAttribute('aria-label')
+                        ].filter(Boolean).join(' ').replace(/\\s+/g, '').toLowerCase();
+                        return style.display !== 'none'
+                            && style.visibility !== 'hidden'
+                            && rect.width > 0
+                            && rect.height > 0
+                            && rect.bottom >= 0
+                            && rect.top <= window.innerHeight
+                            && value.length <= 300
+                            && options.targetTexts.some(targetText => (
+                                options.preferExactMatch ? value === targetText : value.includes(targetText)
+                            ));
+                    });
+                }""",
+                options,
+            )
+        except Exception:
+            found = False
+
+        if found:
+            return True
+
+    return False
 
 
 
@@ -746,10 +800,12 @@ def fill_remote_captcha_and_login(page, captcha_code, cleanup_paths=None):
     pyautogui.press("enter")
     if not wait_for_remote_login_transition(page):
         print("检测到页面仍停留在验证码登录界面，准备重新选择 dx 账号后再输入验证码")
-        manual_captcha_code = retry_remote_login_after_captcha_failure(page)
+        retry_remote_login_after_captcha_failure(page)
         if not wait_for_remote_login_transition(page):
             raise RuntimeError("重新输入验证码后页面仍未跳转，请检查验证码是否正确")
-    wait_for_remote_avatar_visible(page)
+    if not wait_for_verified_remote_login(page, timeout_ms=15000):
+        print("未确认真正进入认证计费管理系统，请手动完成登录，程序会持续等待确认")
+        wait_for_manual_verified_remote_login(page)
     cleanup_captcha_images(cleanup_paths)
     navigate_remote_profile_menu(page)
 
@@ -760,14 +816,19 @@ def wait_for_remote_login_transition(page, timeout_ms=8000):
     interval = 800
 
     while deadline > 0:
+        if is_remote_captcha_still_visible():
+            page.wait_for_timeout(interval)
+            deadline -= interval
+            continue
+
         if is_remote_profile_entry_visible():
-            print("验证码提交成功，页面已继续")
+            print("验证码页已消失，检测到小人头像")
             return True
-        if not is_remote_captcha_still_visible():
-            print("验证码页已消失，继续后续流程")
+        if is_remote_billing_system_entry_visible(page):
+            print("验证码页已消失，检测到认证计费管理系统入口")
             return True
-        page.wait_for_timeout(interval)
-        deadline -= interval
+        print("验证码页已消失，继续做真实登录验证")
+        return True
 
     return False
 
@@ -776,6 +837,65 @@ def is_remote_profile_entry_visible():
     if not REMOTE_AVATAR_IMAGE_PATH.exists():
         return False
     return locate_image_on_screen(REMOTE_AVATAR_IMAGE_PATH, min_confidence=0.55) is not None
+
+
+def is_remote_billing_system_entry_visible(page):
+    if has_visible_text(page, ["认证计费管理系统"], prefer_exact_match=True):
+        return True
+    if not REMOTE_SYSTEM_MENU_IMAGE_PATH.exists():
+        return False
+    return locate_image_on_screen(REMOTE_SYSTEM_MENU_IMAGE_PATH, min_confidence=0.48) is not None
+
+
+def wait_for_verified_remote_login(page, timeout_ms=15000):
+    print("验证是否真正登录到认证计费管理系统")
+    deadline = timeout_ms
+    interval = 1000
+    next_progress_ms = timeout_ms
+
+    while deadline > 0:
+        if verify_remote_login_ready(page):
+            print("已确认登录成功，可以进入认证计费管理系统")
+            return True
+        if deadline <= next_progress_ms:
+            print(f"等待认证计费管理系统入口中，剩余约 {format_remaining_seconds(deadline)} 秒")
+            next_progress_ms -= 3000
+        page.wait_for_timeout(interval)
+        deadline -= interval
+
+    save_pyautogui_screenshot("remote_login_not_verified")
+    return False
+
+
+def wait_for_manual_verified_remote_login(page, timeout_ms=300000):
+    print("请在浏览器里手动登录远程系统，直到能看到小人头像和认证计费管理系统入口")
+    deadline = timeout_ms
+    interval = 2000
+
+    while deadline > 0:
+        if verify_remote_login_ready(page):
+            print("已检测到手动登录成功")
+            return
+        print(f"继续等待手动登录完成，剩余约 {format_remaining_seconds(deadline)} 秒")
+        page.wait_for_timeout(interval)
+        deadline -= interval
+
+    save_pyautogui_screenshot("manual_remote_login_timeout")
+    raise RuntimeError("等待手动登录超时，未确认认证计费管理系统入口")
+
+
+def verify_remote_login_ready(page):
+    if is_remote_billing_system_entry_visible(page):
+        return True
+    if not is_remote_profile_entry_visible():
+        return False
+
+    print("检测到小人头像，尝试展开菜单验证认证计费管理系统入口")
+    if click_image_center(REMOTE_AVATAR_IMAGE_PATH, "小人头像", timeout_ms=1500, min_confidence=0.55):
+        page.wait_for_timeout(800)
+        return is_remote_billing_system_entry_visible(page)
+
+    return False
 
 
 def is_remote_captcha_still_visible():
@@ -951,21 +1071,21 @@ def navigate_remote_profile_menu(page):
             "image_path": REMOTE_SYSTEM_MENU_IMAGE_PATH,
             "label": "认证计费管理系统",
             "timeout_ms": 20000,
-            "dom_texts": ["认证计费管理系统"],
+            "dom_texts": None,
             "min_confidence": 0.48,
         },
         {
             "image_path": REMOTE_BUSINESS_MENU_IMAGE_PATH,
             "label": "业务管理",
             "timeout_ms": 45000,
-            "dom_texts": ["业务管理"],
+            "dom_texts": None,
             "min_confidence": 0.45,
         },
         {
             "image_path": REMOTE_EDIT_PROFILE_IMAGE_PATH,
             "label": "修改资料",
             "timeout_ms": 45000,
-            "dom_texts": ["修改资料"],
+            "dom_texts": None,
             "min_confidence": 0.45,
         },
     ]
@@ -976,6 +1096,10 @@ def navigate_remote_profile_menu(page):
         timeout_ms = step["timeout_ms"]
         dom_texts = step["dom_texts"]
         min_confidence = step.get("min_confidence", 0.62)
+
+        if label == "小人头像" and is_remote_billing_system_entry_visible(page):
+            print("认证计费管理系统入口已可见，跳过再次点击小人头像")
+            continue
 
         if dom_texts:
             print(f"尝试通过 DOM 点击{label}")
@@ -995,6 +1119,7 @@ def navigate_remote_profile_menu(page):
             raise RuntimeError(f"未找到或未能点击{label}: {image_path}")
         page.wait_for_timeout(1200)
 
+    wait_for_edit_profile_form_ready(page)
     print("已进入修改资料页面")
     complete_profile_update_form(page)
 
@@ -1016,11 +1141,16 @@ def complete_profile_update_form(page):
             f"开始处理工单: id={ticket.id}, studentId={ticket.student_id}, "
             f"broadbandAccount={ticket.broadband_account}, status={ticket.status}"
         )
-        refresh_edit_profile_page(page)
-        process_profile_update_ticket(page, ticket)
-        mark_ticket_completed(ticket)
-        save_ticket_cursor(ticket)
-        print(f"工单处理完成: id={ticket.id}")
+        try:
+            refresh_edit_profile_page(page)
+            result_message = process_profile_update_ticket(page, ticket)
+            mark_ticket_completed(ticket, result_message)
+            save_ticket_cursor(ticket)
+            print(f"工单处理完成: id={ticket.id}, result={result_message}")
+        except Exception as error:
+            save_pyautogui_screenshot(f"ticket_{ticket.id}_failed")
+            print(f"工单处理失败，未写入完成状态: id={ticket.id}, error={error}")
+            raise
 
 
 def process_profile_update_ticket(page, ticket: PendingTicket):
@@ -1032,11 +1162,16 @@ def process_profile_update_ticket(page, ticket: PendingTicket):
         raise RuntimeError(f"工单 {ticket.id} 的 new_password 为空")
 
     fill_input_by_image(page, STUDENT_ID_INPUT_IMAGE_PATH, "学号输入框", ticket.student_id, click_x_ratio=0.78)
-    click_image_center(QUERY_BUTTON_IMAGE_PATH, "查询按钮", timeout_ms=15000, min_confidence=0.45)
+    if not click_image_center(QUERY_BUTTON_IMAGE_PATH, "查询按钮", timeout_ms=15000, min_confidence=0.45):
+        raise RuntimeError("未能点击查询按钮，停止处理以避免假完成")
     print("已点击查询按钮，等待页面加载")
-    page.wait_for_timeout(2000)
+    query_result = wait_for_student_query_result(page)
+    if query_result == RESULT_STUDENT_NOT_FOUND:
+        print("查询结果为学号未查询到")
+        return RESULT_STUDENT_NOT_FOUND
 
     scroll_profile_form_to_bottom(page)
+    wait_for_broadband_fields_ready(page)
     fill_input_by_image(
         page,
         BROADBAND_ACCOUNT_INPUT_IMAGE_PATH,
@@ -1055,28 +1190,120 @@ def process_profile_update_ticket(page, ticket: PendingTicket):
     print("宽带信息填写完成，按回车提交")
     pyautogui.press("enter")
     page.wait_for_timeout(1500)
-    confirm_profile_submission(page)
+    return confirm_profile_submission(page)
 
 
 def refresh_edit_profile_page(page):
-    if click_visible_text_by_dom(
-        page,
-        ["修改资料"],
-        prefer_clickable_ancestor=True,
-        raise_on_missing=False,
-        prefer_exact_match=True,
-    ):
-        print("已点击修改资料")
-        page.wait_for_timeout(800)
-        return
-
     if REMOTE_EDIT_PROFILE_IMAGE_PATH.exists():
         if click_image_center(REMOTE_EDIT_PROFILE_IMAGE_PATH, "修改资料", timeout_ms=1500, min_confidence=0.45):
             print("已点击修改资料")
             page.wait_for_timeout(800)
+            wait_for_edit_profile_form_ready(page)
             return
 
-    print("当前未重新点击修改资料，继续使用现有页面")
+    if is_edit_profile_form_ready():
+        print("修改资料图片未匹配到，但当前仍在修改资料表单")
+        return
+
+    save_pyautogui_screenshot("edit_profile_refresh_failed")
+    raise RuntimeError("未能重新进入修改资料页面，停止处理以避免假完成")
+
+
+def wait_for_edit_profile_form_ready(page, timeout_ms=15000):
+    print("确认修改资料表单是否可用")
+    deadline = timeout_ms
+    interval = 500
+
+    while deadline > 0:
+        if is_edit_profile_form_ready():
+            print("已确认修改资料表单可用")
+            return
+        page.wait_for_timeout(interval)
+        deadline -= interval
+
+    save_pyautogui_screenshot("edit_profile_form_not_ready")
+    raise RuntimeError("未确认进入修改资料表单")
+
+
+def is_edit_profile_form_ready():
+    if STUDENT_ID_INPUT_IMAGE_PATH.exists():
+        if locate_image_on_screen(STUDENT_ID_INPUT_IMAGE_PATH, min_confidence=0.45):
+            return True
+    if QUERY_BUTTON_IMAGE_PATH.exists():
+        if locate_image_on_screen(QUERY_BUTTON_IMAGE_PATH, min_confidence=0.45):
+            return True
+    return False
+
+
+def wait_for_student_query_result(page, timeout_ms=10000):
+    print("等待学号查询结果")
+    deadline = timeout_ms
+    interval = 500
+    elapsed = 0
+    scrolled_to_fields = False
+    user_list_hits = 0
+
+    while deadline > 0:
+        if elapsed >= 2500 and not scrolled_to_fields:
+            scroll_profile_form_to_bottom(page)
+            scrolled_to_fields = True
+
+        if is_broadband_field_visible():
+            print("已检测到宽带信息输入区域，继续填写")
+            return None
+
+        if is_user_list_visible(page):
+            user_list_hits += 1
+            print(f"检测到用户列表候选，第 {user_list_hits} 次，继续等待成功证据")
+        else:
+            user_list_hits = 0
+
+        if elapsed >= 3500 and scrolled_to_fields and user_list_hits >= 3:
+            print("连续检测到用户列表，且未检测到宽带输入框，判定学号未查询到")
+            return RESULT_STUDENT_NOT_FOUND
+
+        page.wait_for_timeout(interval)
+        deadline -= interval
+        elapsed += interval
+
+    save_pyautogui_screenshot("student_query_result_unknown")
+    raise RuntimeError("学号查询后页面状态不明，未看到用户列表或宽带输入框")
+
+
+def is_user_list_visible(page):
+    if has_visible_text(page, ["用户列表"], prefer_exact_match=True):
+        return True
+    if USER_LIST_IMAGE_PATH.exists():
+        return locate_image_on_screen(USER_LIST_IMAGE_PATH, min_confidence=0.55) is not None
+    return False
+
+
+def wait_for_broadband_fields_ready(page, timeout_ms=8000):
+    print("确认宽带账号/密码输入框是否可用")
+    deadline = timeout_ms
+    interval = 500
+
+    while deadline > 0:
+        if is_broadband_field_visible():
+            print("已确认宽带输入框可用")
+            return
+        page.wait_for_timeout(interval)
+        deadline -= interval
+
+    save_pyautogui_screenshot("broadband_fields_not_ready")
+    raise RuntimeError("未确认宽带输入框可用")
+
+
+def is_broadband_field_visible():
+    account_visible = (
+        BROADBAND_ACCOUNT_INPUT_IMAGE_PATH.exists()
+        and locate_image_on_screen(BROADBAND_ACCOUNT_INPUT_IMAGE_PATH, min_confidence=0.45) is not None
+    )
+    password_visible = (
+        BROADBAND_PASSWORD_INPUT_IMAGE_PATH.exists()
+        and locate_image_on_screen(BROADBAND_PASSWORD_INPUT_IMAGE_PATH, min_confidence=0.45) is not None
+    )
+    return account_visible or password_visible
 
 
 def get_next_ticket_for_processing() -> PendingTicket | None:
@@ -1106,8 +1333,8 @@ def save_ticket_cursor(ticket: PendingTicket) -> None:
     TICKET_CURSOR_PATH.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
-def mark_ticket_completed(ticket: PendingTicket) -> None:
-    update_ticket_status_in_db(ticket.id, 3, "自动化处理完成")
+def mark_ticket_completed(ticket: PendingTicket, result_message: str) -> None:
+    update_ticket_status_in_db(ticket.id, 3, result_message)
 
 
 def print_idle_duration(idle_started_at: float) -> None:
@@ -1175,27 +1402,55 @@ def scroll_profile_form_to_bottom(page):
 
 
 def confirm_profile_submission(page):
-    print("等待确认弹窗加载")
-    page.wait_for_timeout(2500)
+    print("等待提交结果弹窗加载")
+    deadline = 15000
+    interval = 500
+
+    while deadline > 0:
+        bound_match = locate_result_template(ACCOUNT_BOUND_WARNING_IMAGE_PATH, "账号已绑定提示", min_confidence=0.55)
+        if bound_match or has_visible_text(page, ["该账号已被其他用户绑定", "请填写其他未绑定账号"]):
+            print("检测到账号已被其他用户绑定提示")
+            click_result_dialog_confirm(page, bound_match)
+            return RESULT_CONTACT_STAFF
+
+        success_match = locate_result_template(OPERATION_SUCCESS_IMAGE_PATH, "操作成功提示", min_confidence=0.55)
+        if success_match or has_visible_text(page, ["操作成功"]):
+            print("检测到操作成功提示")
+            click_result_dialog_confirm(page, success_match)
+            return RESULT_SUCCESS
+
+        page.wait_for_timeout(interval)
+        deadline -= interval
+
+    save_pyautogui_screenshot("profile_submission_result_unknown")
+    raise RuntimeError("提交后未识别到操作成功或账号已绑定提示，未写入完成状态")
+
+
+def locate_result_template(image_path, label, min_confidence=0.55):
+    if not image_path.exists():
+        print(f"缺少{label}模板: {image_path}")
+        return None
+    return locate_image_on_screen(image_path, min_confidence=min_confidence)
+
+
+def click_result_dialog_confirm(page, dialog_match=None):
+    if dialog_match and pyautogui is not None:
+        target_x = int(round(dialog_match.left + dialog_match.width * 0.82))
+        target_y = int(round(dialog_match.top + dialog_match.height * 0.83))
+        print(f"点击结果弹窗确认按钮坐标: ({target_x}, {target_y})")
+        pyautogui.moveTo(target_x, target_y, duration=0.2)
+        pyautogui.click(x=target_x, y=target_y)
+        page.wait_for_timeout(800)
+        return
 
     if CONFIRM_BUTTON_IMAGE_PATH.exists():
         print("开始查找确认按钮图片")
-        if click_image_center(CONFIRM_BUTTON_IMAGE_PATH, "确认按钮", timeout_ms=12000, min_confidence=0.45):
+        if click_image_center(CONFIRM_BUTTON_IMAGE_PATH, "确认按钮", timeout_ms=4000, min_confidence=0.45):
             print("已通过图片点击确认按钮")
             return
 
-    print("图片未找到确认按钮，尝试通过文字点击")
-    if click_visible_text_by_dom(
-        page,
-        ["确认", "确定"],
-        prefer_clickable_ancestor=True,
-        raise_on_missing=False,
-        prefer_exact_match=True,
-    ):
-        print("已通过 DOM 点击确认按钮")
-        return
-
-    raise RuntimeError("未找到弹出的确认按钮，请补充确认按钮图片或检查弹窗是否出现")
+    save_pyautogui_screenshot("result_dialog_confirm_not_found")
+    raise RuntimeError("识别到结果弹窗，但未能通过图片点击确认按钮")
 
 
 

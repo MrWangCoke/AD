@@ -25,6 +25,9 @@ QUERY_BUTTON_IMAGE_PATH = BASE_DIR / os.getenv("QUERY_BUTTON_IMAGE_PATH", "asset
 BROADBAND_ACCOUNT_INPUT_IMAGE_PATH = BASE_DIR / os.getenv("BROADBAND_ACCOUNT_INPUT_IMAGE_PATH", "assets/broadband_account_input.png")
 BROADBAND_PASSWORD_INPUT_IMAGE_PATH = BASE_DIR / os.getenv("BROADBAND_PASSWORD_INPUT_IMAGE_PATH", "assets/broadband_password_input.png")
 CONFIRM_BUTTON_IMAGE_PATH = BASE_DIR / os.getenv("CONFIRM_BUTTON_IMAGE_PATH", "assets/confirm_button.png")
+OPERATION_SUCCESS_IMAGE_PATH = BASE_DIR / os.getenv("OPERATION_SUCCESS_IMAGE_PATH", "assets/operation_success.png")
+ACCOUNT_BOUND_WARNING_IMAGE_PATH = BASE_DIR / os.getenv("ACCOUNT_BOUND_WARNING_IMAGE_PATH", "assets/account_bound_warning.png")
+USER_LIST_IMAGE_PATH = BASE_DIR / os.getenv("USER_LIST_IMAGE_PATH", "assets/user_list_header.png")
 TICKET_CURSOR_PATH = BASE_DIR / os.getenv("TICKET_CURSOR_PATH", "output/ticket_cursor.json")
 HEADLESS = os.getenv("HEADLESS", "false").lower() == "true"
 BROWSER_CHANNEL = os.getenv("BROWSER_CHANNEL", "chrome")
