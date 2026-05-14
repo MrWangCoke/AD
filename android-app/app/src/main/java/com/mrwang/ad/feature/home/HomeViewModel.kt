@@ -13,6 +13,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class HomeViewModel(
@@ -21,6 +23,7 @@ class HomeViewModel(
 
     private val authRepository = AuthRepository()
     private val userSessionRepository = UserSessionRepository(application)
+    private var bindCooldownJob: Job? = null
 
     private val _state = MutableStateFlow(HomeState())
     val state: StateFlow<HomeState> = _state.asStateFlow()
@@ -51,6 +54,10 @@ class HomeViewModel(
 
             if (snapshot.currentUserId <= 0L) {
                 _effect.emit(HomeEffect.ShowMessage("请先登录后再提交工单"))
+                return@launch
+            }
+            if (snapshot.bindCooldownSeconds > 0) {
+                _effect.emit(HomeEffect.ShowMessage("多次提交请等待${snapshot.bindCooldownSeconds}秒"))
                 return@launch
             }
             if (studentId.isBlank()) {
@@ -85,10 +92,15 @@ class HomeViewModel(
                             latestTicketNo = user.ticketNo
                         )
                     }
+                    startBindCooldown()
                     _effect.emit(HomeEffect.ShowMessage("绑定工单已提交"))
                 }
                 .onFailure { error ->
-                    _effect.emit(HomeEffect.ShowMessage(error.message ?: "绑定失败"))
+                    val message = error.message ?: "绑定失败"
+                    if (message.contains("多次提交") || message.contains("等待一分钟")) {
+                        startBindCooldown()
+                    }
+                    _effect.emit(HomeEffect.ShowMessage(message))
                 }
         }
     }
@@ -169,6 +181,17 @@ class HomeViewModel(
     private fun emitMessage(message: String) {
         viewModelScope.launch {
             _effect.emit(HomeEffect.ShowMessage(message))
+        }
+    }
+
+    private fun startBindCooldown(seconds: Int = 60) {
+        bindCooldownJob?.cancel()
+        bindCooldownJob = viewModelScope.launch {
+            for (remaining in seconds downTo 1) {
+                _state.update { it.copy(bindCooldownSeconds = remaining) }
+                delay(1_000)
+            }
+            _state.update { it.copy(bindCooldownSeconds = 0) }
         }
     }
 

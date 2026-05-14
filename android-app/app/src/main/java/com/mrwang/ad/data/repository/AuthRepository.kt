@@ -10,10 +10,12 @@ import com.mrwang.ad.data.remote.model.TicketResponse
 import com.mrwang.ad.data.remote.model.UpdateProfileRequest
 import com.mrwang.ad.data.remote.model.UserResponse
 import com.mrwang.ad.data.remote.AuthApi
+import okhttp3.OkHttpClient
 import retrofit2.HttpException
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.io.IOException
+import java.util.concurrent.TimeUnit
 import org.json.JSONObject
 
 class AuthRepository(
@@ -100,7 +102,7 @@ class AuthRepository(
         } catch (error: HttpException) {
             Result.failure(IllegalStateException(parseErrorMessage(error.response()?.errorBody()?.string())))
         } catch (_: IOException) {
-            Result.failure(IllegalStateException("无法连接后端服务"))
+            Result.failure(IllegalStateException("网络超时或无法连接后端服务"))
         } catch (error: Exception) {
             Result.failure(IllegalStateException(error.message ?: "未知错误"))
         }
@@ -133,7 +135,7 @@ private suspend fun callAuth(block: suspend () -> UserResponse): Result<UserResp
     } catch (error: HttpException) {
         Result.failure(IllegalStateException(parseErrorMessage(error.response()?.errorBody()?.string())))
     } catch (_: IOException) {
-        Result.failure(IllegalStateException("无法连接后端服务"))
+        Result.failure(IllegalStateException("网络超时或无法连接后端服务"))
     } catch (error: Exception) {
         Result.failure(IllegalStateException(error.message ?: "未知错误"))
     }
@@ -145,7 +147,7 @@ private suspend fun callTicket(block: suspend () -> TicketResponse): Result<Tick
     } catch (error: HttpException) {
         Result.failure(IllegalStateException(parseErrorMessage(error.response()?.errorBody()?.string())))
     } catch (_: IOException) {
-        Result.failure(IllegalStateException("无法连接后端服务"))
+        Result.failure(IllegalStateException("网络超时或无法连接后端服务"))
     } catch (error: Exception) {
         Result.failure(IllegalStateException(error.message ?: "未知错误"))
     }
@@ -163,8 +165,17 @@ private fun parseErrorMessage(rawBody: String?): String {
 }
 
 private fun defaultAuthApi(): AuthApi {
+    val client = OkHttpClient.Builder()
+        .connectTimeout(8, TimeUnit.SECONDS)
+        .readTimeout(12, TimeUnit.SECONDS)
+        .writeTimeout(12, TimeUnit.SECONDS)
+        .callTimeout(15, TimeUnit.SECONDS)
+        .retryOnConnectionFailure(true)
+        .build()
+
     return Retrofit.Builder()
         .baseUrl(BuildConfig.AUTH_BASE_URL)
+        .client(client)
         .addConverterFactory(GsonConverterFactory.create())
         .build()
         .create(AuthApi::class.java)

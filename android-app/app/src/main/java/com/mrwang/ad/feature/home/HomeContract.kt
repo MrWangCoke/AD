@@ -10,6 +10,7 @@ data class HomeState(
     val type3SmsContent: String = "",
     val isSubmittingType3: Boolean = false,
     val isBinding: Boolean = false,
+    val bindCooldownSeconds: Int = 0,
     val boundStudentId: String = "",
     val boundPhone: String = "",
     val latestTicketNo: String = ""

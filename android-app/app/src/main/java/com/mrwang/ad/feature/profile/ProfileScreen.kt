@@ -303,12 +303,23 @@ private fun TicketListItem(ticket: TicketResponse) {
             color = Color.White.copy(alpha = 0.72f),
             style = MaterialTheme.typography.bodySmall
         )
-        if (!ticket.resultMessage.isNullOrBlank()) {
-            Text(
-                text = ticket.resultMessage,
-                color = Color.White.copy(alpha = 0.82f),
-                style = MaterialTheme.typography.bodySmall
-            )
+        val resultText = ticketResultText(ticket)
+        if (resultText != null) {
+            val resultColor = ticketResultColor(ticket)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(resultColor.copy(alpha = 0.12f), RoundedCornerShape(12.dp))
+                    .border(1.dp, resultColor.copy(alpha = 0.28f), RoundedCornerShape(12.dp))
+                    .padding(horizontal = 10.dp, vertical = 8.dp)
+            ) {
+                Text(
+                    text = "处理结果：$resultText",
+                    color = resultColor,
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
         }
     }
 }
@@ -414,6 +425,26 @@ private fun ticketStatusText(status: Int): String {
         2 -> "处理中"
         3 -> "已完成"
         else -> "待处理"
+    }
+}
+
+private fun ticketResultText(ticket: TicketResponse): String? {
+    val message = ticket.resultMessage?.trim().orEmpty()
+    if (message.isNotBlank()) {
+        return message
+    }
+    return if (ticket.status == 3) "已完成" else null
+}
+
+private fun ticketResultColor(ticket: TicketResponse): Color {
+    val message = ticket.resultMessage?.trim().orEmpty()
+    val needsAttention = ticket.status == 3 &&
+        message.isNotBlank() &&
+        message != "自动化处理完成"
+    return if (needsAttention) {
+        Color(0xFFFFD166)
+    } else {
+        Color.White.copy(alpha = 0.88f)
     }
 }
 

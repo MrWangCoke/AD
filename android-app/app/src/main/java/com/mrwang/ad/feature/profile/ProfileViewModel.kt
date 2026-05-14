@@ -346,7 +346,15 @@ class ProfileViewModel(
         _state.update { it.copy(isTicketsLoading = false) }
         result
             .onSuccess { tickets ->
-                _state.update { it.copy(tickets = tickets) }
+                _state.update {
+                    it.copy(
+                        tickets = tickets.sortedWith(
+                            compareByDescending<com.mrwang.ad.data.remote.model.TicketResponse> { ticket ->
+                                ticket.createdAt.orEmpty()
+                            }.thenByDescending { ticket -> ticket.id }
+                        )
+                    )
+                }
             }
             .onFailure { error ->
                 _effect.emit(ProfileEffect.ShowMessage(error.message ?: "工单加载失败"))

@@ -601,12 +601,27 @@ private fun NewUserBindPanel(
                 enabled = !state.isBinding
             )
             GlassButton(
-                text = if (state.isBinding) "绑定中..." else "立即绑定",
+                text = bindButtonText(state),
                 backdrop = backdrop,
                 onClick = { onIntent(HomeIntent.OnBindSubmit) },
-                enabled = !state.isBinding,
+                enabled = !state.isBinding && state.bindCooldownSeconds <= 0,
                 modifier = Modifier.fillMaxWidth()
             )
+            if (state.bindCooldownSeconds > 0) {
+                Text(
+                    text = "刚提交过绑定工单，请等待 ${state.bindCooldownSeconds} 秒后再试。",
+                    color = Color.White.copy(alpha = 0.72f),
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
         }
+    }
+}
+
+private fun bindButtonText(state: HomeState): String {
+    return when {
+        state.isBinding -> "绑定中..."
+        state.bindCooldownSeconds > 0 -> "请等待 ${state.bindCooldownSeconds} 秒"
+        else -> "立即绑定"
     }
 }
