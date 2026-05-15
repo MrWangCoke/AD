@@ -519,6 +519,17 @@ a {
   font-weight: 600;
 }
 
+.btn:disabled,
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.btn:disabled:hover,
+.button:disabled:hover {
+  transform: none;
+}
+
 .btn-primary,
 .button--primary {
   background: var(--blue);
@@ -776,6 +787,12 @@ a {
   background: rgba(63, 185, 80, 0.14);
   border: 1px solid rgba(63, 185, 80, 0.28);
   color: #a8ebb2;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.bind-cooldown {
+  color: var(--yellow);
   font-size: 13px;
   line-height: 1.7;
 }
@@ -1268,6 +1285,24 @@ a {
   margin-top: 10px;
   font-size: 12px;
   line-height: 1.7;
+}
+
+.ticket-result {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 6px 10px;
+  border: 1px solid rgba(48, 54, 61, 0.95);
+  border-radius: 8px;
+  color: var(--text);
+  background: rgba(22, 27, 34, 0.82);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.ticket-result-label {
+  color: var(--text2);
 }
 
 .ticket-right {

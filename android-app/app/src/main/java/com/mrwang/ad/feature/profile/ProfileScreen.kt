@@ -29,17 +29,23 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import coil.size.Precision
+import coil.size.Scale
 import com.kyant.backdrop.backdrops.LayerBackdrop
 import com.mrwang.ad.app.AppBackgroundState
 import com.mrwang.ad.data.remote.model.TicketResponse
@@ -303,23 +309,12 @@ private fun TicketListItem(ticket: TicketResponse) {
             color = Color.White.copy(alpha = 0.72f),
             style = MaterialTheme.typography.bodySmall
         )
-        val resultText = ticketResultText(ticket)
-        if (resultText != null) {
-            val resultColor = ticketResultColor(ticket)
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(resultColor.copy(alpha = 0.12f), RoundedCornerShape(12.dp))
-                    .border(1.dp, resultColor.copy(alpha = 0.28f), RoundedCornerShape(12.dp))
-                    .padding(horizontal = 10.dp, vertical = 8.dp)
-            ) {
-                Text(
-                    text = "处理结果：$resultText",
-                    color = resultColor,
-                    style = MaterialTheme.typography.bodySmall,
-                    fontWeight = FontWeight.SemiBold
-                )
-            }
+        if (!ticket.resultMessage.isNullOrBlank()) {
+            Text(
+                text = ticket.resultMessage,
+                color = Color.White.copy(alpha = 0.82f),
+                style = MaterialTheme.typography.bodySmall
+            )
         }
     }
 }
@@ -381,19 +376,21 @@ private fun Avatar(
     backdrop: LayerBackdrop,
     onClick: () -> Unit
 ) {
+    val avatarSize = 72.dp
+    val avatarRequest = rememberSizedImageRequest(avatarUrl, avatarSize)
     val shape = RoundedCornerShape(36.dp)
     Box(
         modifier = Modifier
-            .size(72.dp)
+            .size(avatarSize)
             .background(Color.White.copy(alpha = 0.14f), shape)
             .border(1.dp, Color.White.copy(alpha = 0.24f), shape)
             .clip(shape)
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
-        if (!avatarUrl.isNullOrBlank()) {
+        if (avatarRequest != null) {
             AsyncImage(
-                model = avatarUrl,
+                model = avatarRequest,
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()
@@ -406,6 +403,27 @@ private fun Avatar(
                 modifier = Modifier.size(38.dp)
             )
         }
+    }
+}
+
+@Composable
+private fun rememberSizedImageRequest(model: String?, size: Dp): ImageRequest? {
+    if (model.isNullOrBlank()) {
+        return null
+    }
+    val context = LocalContext.current
+    val density = LocalDensity.current
+    val sizePx = with(density) { size.roundToPx() }.coerceAtLeast(1)
+
+    return remember(model, sizePx) {
+        ImageRequest.Builder(context)
+            .data(model)
+            .size(sizePx, sizePx)
+            .scale(Scale.FILL)
+            .precision(Precision.INEXACT)
+            .allowHardware(true)
+            .crossfade(false)
+            .build()
     }
 }
 
@@ -425,26 +443,6 @@ private fun ticketStatusText(status: Int): String {
         2 -> "处理中"
         3 -> "已完成"
         else -> "待处理"
-    }
-}
-
-private fun ticketResultText(ticket: TicketResponse): String? {
-    val message = ticket.resultMessage?.trim().orEmpty()
-    if (message.isNotBlank()) {
-        return message
-    }
-    return if (ticket.status == 3) "已完成" else null
-}
-
-private fun ticketResultColor(ticket: TicketResponse): Color {
-    val message = ticket.resultMessage?.trim().orEmpty()
-    val needsAttention = ticket.status == 3 &&
-        message.isNotBlank() &&
-        message != "自动化处理完成"
-    return if (needsAttention) {
-        Color(0xFFFFD166)
-    } else {
-        Color.White.copy(alpha = 0.88f)
     }
 }
 

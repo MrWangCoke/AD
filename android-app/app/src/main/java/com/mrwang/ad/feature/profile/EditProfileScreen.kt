@@ -28,17 +28,23 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import coil.size.Precision
+import coil.size.Scale
 import com.kyant.backdrop.backdrops.LayerBackdrop
 import com.mrwang.ad.R
 import com.mrwang.ad.core.ui.components.GlassButton
@@ -188,6 +194,8 @@ private fun EditAvatar(
     avatarUrl: String?,
     onClick: () -> Unit
 ) {
+    val avatarSize = 88.dp
+    val avatarRequest = rememberSizedImageRequest(avatarUrl, avatarSize)
     val shape = RoundedCornerShape(44.dp)
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -196,16 +204,16 @@ private fun EditAvatar(
     ) {
         Box(
             modifier = Modifier
-                .size(88.dp)
+                .size(avatarSize)
                 .background(Color.White.copy(alpha = 0.14f), shape)
                 .border(1.dp, Color.White.copy(alpha = 0.24f), shape)
                 .clip(shape)
                 .clickable(onClick = onClick),
             contentAlignment = Alignment.Center
         ) {
-            if (!avatarUrl.isNullOrBlank()) {
+            if (avatarRequest != null) {
                 AsyncImage(
-                    model = avatarUrl,
+                    model = avatarRequest,
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()
@@ -224,5 +232,26 @@ private fun EditAvatar(
             color = Color.White.copy(alpha = 0.78f),
             style = MaterialTheme.typography.bodyMedium
         )
+    }
+}
+
+@Composable
+private fun rememberSizedImageRequest(model: String?, size: Dp): ImageRequest? {
+    if (model.isNullOrBlank()) {
+        return null
+    }
+    val context = LocalContext.current
+    val density = LocalDensity.current
+    val sizePx = with(density) { size.roundToPx() }.coerceAtLeast(1)
+
+    return remember(model, sizePx) {
+        ImageRequest.Builder(context)
+            .data(model)
+            .size(sizePx, sizePx)
+            .scale(Scale.FILL)
+            .precision(Precision.INEXACT)
+            .allowHardware(true)
+            .crossfade(false)
+            .build()
     }
 }

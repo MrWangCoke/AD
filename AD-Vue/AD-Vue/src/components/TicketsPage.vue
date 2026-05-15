@@ -16,10 +16,25 @@ const normalizedTickets = computed(() => {
     ...ticket,
     title: ticketTypeText(ticket.ticketType),
     statusText: ticketStatusText(ticket.status),
-    statusClass: ticketStatusClass(ticket.status),
+    statusClass: resolveTicketStatusClass(ticket),
+    resultLabel: resolveTicketResultLabel(ticket),
     formattedCreatedAt: formatTicketTime(ticket.createdAt),
   }))
 })
+
+function resolveTicketResultLabel(ticket) {
+  const message = (ticket.resultMessage || '').trim()
+  if (ticket.status !== 3) return ''
+  return message || '已完成'
+}
+
+function resolveTicketStatusClass(ticket) {
+  const message = (ticket.resultMessage || '').trim()
+  if (ticket.status === 3 && message && message !== '自动化处理完成') {
+    return 'status-fail'
+  }
+  return ticketStatusClass(ticket.status)
+}
 </script>
 
 <template>
@@ -65,7 +80,7 @@ const normalizedTickets = computed(() => {
             <h2 style="font-size:18px;font-weight:700">工单列表</h2>
             <p style="color:var(--text2);margin-top:6px">当前账号：{{ currentUser?.name }} / {{ currentUser?.studentId }}</p>
           </div>
-          <button class="btn btn-outline btn-sm" @click="$emit('refresh')">
+          <button class="btn btn-outline btn-sm" :disabled="isLoading" @click="$emit('refresh')">
             {{ isLoading ? '刷新中...' : '刷新' }}
           </button>
         </div>
@@ -100,7 +115,11 @@ const normalizedTickets = computed(() => {
                 <span># {{ ticket.ticketNo || '工单号待生成' }}</span>
                 <span>{{ ticket.formattedCreatedAt }}</span>
               </div>
-              <div v-if="ticket.resultMessage" class="ticket-note">{{ ticket.resultMessage }}</div>
+              <div v-if="ticket.resultLabel" class="ticket-result">
+                <span class="ticket-result-label">处理结果</span>
+                <span>{{ ticket.resultLabel }}</span>
+              </div>
+              <div v-else-if="ticket.resultMessage" class="ticket-note">{{ ticket.resultMessage }}</div>
             </div>
             <div class="ticket-right">
               <div class="status-badge" :class="ticket.statusClass">

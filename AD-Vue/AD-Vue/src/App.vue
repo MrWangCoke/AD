@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import AuthScreen from './components/AuthScreen.vue'
 import HomePage from './components/HomePage.vue'
 import SubmitPage from './components/SubmitPage.vue'
@@ -18,6 +18,7 @@ import {
 import {
   createNewUserBindTicket,
   createBroadbandPasswordResetTicket,
+  ApiError,
   fetchUserTickets,
   loginUser,
   registerUser,
@@ -53,6 +54,8 @@ const latestSubmission = reactive({
 
 const type3SmsContent = ref('')
 const isSubmittingType3 = ref(false)
+const bindCooldownRemaining = ref(0)
+let bindCooldownTimerId = null
 
 const authForm = reactive({
   loginPhone: '',
@@ -240,9 +243,15 @@ async function handleBindSubmit() {
       pushToast('提交返回成功，但刷新后未看到该工单，请检查后端接口地址或数据库连接', 'warning')
       return
     }
+    startBindCooldown()
     pushToast('绑定工单已提交', 'success')
   } catch (error) {
-    pushToast(error.message || '绑定失败', 'error')
+    if (error instanceof ApiError && error.status === 429) {
+      startBindCooldown()
+      pushToast(error.message || '多次提交请等待一分钟', 'warning')
+    } else {
+      pushToast(error.message || '绑定失败', 'error')
+    }
   } finally {
     isBinding.value = false
   }
@@ -364,6 +373,19 @@ function isSubmittedTicketVisible(refreshedTickets, ticket) {
   return refreshedTickets.some((item) => item.id === ticket.id)
 }
 
+function startBindCooldown(seconds = 60) {
+  bindCooldownRemaining.value = Math.max(bindCooldownRemaining.value, seconds)
+  if (bindCooldownTimerId) return
+
+  bindCooldownTimerId = window.setInterval(() => {
+    bindCooldownRemaining.value = Math.max(0, bindCooldownRemaining.value - 1)
+    if (bindCooldownRemaining.value === 0) {
+      window.clearInterval(bindCooldownTimerId)
+      bindCooldownTimerId = null
+    }
+  }, 1000)
+}
+
 function openProfileModal() {
   if (!currentUser.value) {
     redirectAfterAuth.value = activeView.value === 'auth' ? 'home' : activeView.value
@@ -448,6 +470,12 @@ function loadLocalJson(key, fallbackValue) {
   }
 }
 
+onUnmounted(() => {
+  if (bindCooldownTimerId) {
+    window.clearInterval(bindCooldownTimerId)
+  }
+})
+
 async function copyText(value) {
   if (navigator.clipboard?.writeText) {
     await navigator.clipboard.writeText(value)
@@ -494,6 +522,7 @@ async function copyText(value) {
       v-if="activeView === 'home'"
       :home-form="homeForm"
       :is-binding="isBinding"
+      :bind-cooldown-remaining="bindCooldownRemaining"
       :latest-submission="latestSubmission"
       :connection-steps="connectionSteps"
       @submit-bind="handleBindSubmit"

@@ -2,6 +2,7 @@
 defineProps({
   homeForm: Object,
   isBinding: Boolean,
+  bindCooldownRemaining: Number,
   latestSubmission: Object,
   connectionSteps: Array,
 })
@@ -49,9 +50,22 @@ defineEmits(['submit-bind', 'go-submit', 'go-tickets'])
             <div class="bind-form">
               <input v-model="homeForm.studentId" class="form-input" placeholder="输入学号">
               <input v-model="homeForm.campusPhone" class="form-input" placeholder="输入新办的电信校园卡手机号">
-              <button class="btn btn-primary bind-submit" :disabled="isBinding" @click="$emit('submit-bind')">
-                {{ isBinding ? '提交中...' : '立即绑定' }}
+              <button
+                class="btn btn-primary bind-submit"
+                :disabled="isBinding || bindCooldownRemaining > 0"
+                @click="$emit('submit-bind')"
+              >
+                {{
+                  isBinding
+                    ? '提交中...'
+                    : bindCooldownRemaining > 0
+                      ? `请等待 ${bindCooldownRemaining} 秒`
+                      : '立即绑定'
+                }}
               </button>
+            </div>
+            <div v-if="bindCooldownRemaining > 0" class="bind-cooldown">
+              1 分钟内不能重复提交，请稍后再试。
             </div>
             <div v-if="latestSubmission.ticketNo" class="bind-feedback">
               <span>✓</span>

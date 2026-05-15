@@ -1,4 +1,14 @@
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')
+const REQUEST_TIMEOUT_MS = 8000
+
+export class ApiError extends Error {
+  constructor(message, status = 0, code = '') {
+    super(message)
+    this.name = 'ApiError'
+    this.status = status
+    this.code = code
+  }
+}
 
 function buildUrl(path) {
   if (!API_BASE_URL) return path
@@ -7,6 +17,8 @@ function buildUrl(path) {
 
 async function request(path, options = {}) {
   let response
+  const controller = new AbortController()
+  const timeoutId = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
 
   try {
     response = await fetch(buildUrl(path), {
@@ -15,13 +27,20 @@ async function request(path, options = {}) {
         ...(options.headers || {}),
       },
       ...options,
+      signal: controller.signal,
     })
-  } catch (_error) {
-    throw new Error('无法连接后端服务')
+  } catch (error) {
+    if (error?.name === 'AbortError') {
+      throw new ApiError('请求超时，请检查网络后重试', 0, 'TIMEOUT')
+    }
+    throw new ApiError('无法连接后端服务', 0, 'NETWORK_ERROR')
+  } finally {
+    window.clearTimeout(timeoutId)
   }
 
   if (!response.ok) {
-    throw new Error(await parseError(response))
+    const parsed = await parseError(response)
+    throw new ApiError(parsed.message, response.status, parsed.code)
   }
 
   if (response.status === 204) return null
@@ -30,13 +49,16 @@ async function request(path, options = {}) {
 
 async function parseError(response) {
   const text = await response.text()
-  if (!text) return '请求失败'
+  if (!text) return { message: '请求失败', code: '' }
 
   try {
     const payload = JSON.parse(text)
-    return payload.detail || payload.message || payload.title || '请求失败'
+    return {
+      message: payload.detail || payload.message || payload.title || '请求失败',
+      code: payload.code || '',
+    }
   } catch (_error) {
-    return text
+    return { message: text, code: '' }
   }
 }
 
