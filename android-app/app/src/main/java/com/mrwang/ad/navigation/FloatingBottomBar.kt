@@ -4,6 +4,7 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
@@ -38,7 +39,6 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.kyant.backdrop.backdrops.LayerBackdrop
 import com.kyant.backdrop.drawBackdrop
 import com.kyant.backdrop.effects.blur
-import com.kyant.backdrop.effects.lens
 import com.kyant.backdrop.effects.vibrancy
 import kotlinx.coroutines.launch
 
@@ -54,12 +54,7 @@ fun FloatingBottomBar(
     val shape = RoundedCornerShape(36.dp)
     val selectedShape = RoundedCornerShape(28.dp)
     val glassIntensity = (glassOpacity / 0.45f).coerceIn(0f, 1f)
-    val blurRadius = 32.dp * glassIntensity
-    val lensHeight = 26.dp * glassIntensity
-    val lensAmount = 56.dp * glassIntensity
-    val selectedBlurRadius = 16.dp * glassIntensity
-    val selectedLensHeight = 16.dp * glassIntensity
-    val selectedLensAmount = 32.dp * glassIntensity
+    val blurRadius = 18.dp * glassIntensity
     val showGlass = glassIntensity > 0.02f
     val selectedColor = Color(0xFF2196F3)
     val unselectedColor = Color.White
@@ -84,12 +79,6 @@ fun FloatingBottomBar(
                         effects = {
                             vibrancy()
                             blur(blurRadius.toPx())
-                            lens(
-                                refractionHeight = lensHeight.toPx(),
-                                refractionAmount = lensAmount.toPx(),
-                                depthEffect = true,
-                                chromaticAberration = true
-                            )
                         }
                     )
                 } else {
@@ -120,24 +109,9 @@ fun FloatingBottomBar(
                     .offset(x = selectedOffset)
                     .width(itemWidth)
                     .fillMaxHeight()
-                    .then(
-                        if (showGlass) {
-                            Modifier.drawBackdrop(
-                                backdrop = backdrop,
-                                shape = { selectedShape },
-                                effects = {
-                                    vibrancy()
-                                    blur(selectedBlurRadius.toPx())
-                                    lens(
-                                        refractionHeight = selectedLensHeight.toPx(),
-                                        refractionAmount = selectedLensAmount.toPx(),
-                                        depthEffect = true
-                                    )
-                                }
-                            )
-                        } else {
-                            Modifier
-                        }
+                    .background(
+                        color = Color.White.copy(alpha = if (showGlass) 0.18f else 0.10f),
+                        shape = selectedShape
                     )
             )
 

@@ -3,9 +3,10 @@ package com.mrwang.ad.feature.message
 
 import android.widget.Toast
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -46,18 +47,20 @@ private fun MessageScreen(
     state: MessageState,
     onIntent: (MessageIntent) -> Unit
 ) {
-    Column(
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .padding(24.dp)
     ) {
-        Text(
-            text = state.title,
-            style = MaterialTheme.typography.headlineMedium,
-            color = Color.White
-        )
+        item {
+            Text(
+                text = state.title,
+                style = MaterialTheme.typography.headlineMedium,
+                color = Color.White
+            )
+        }
 
-        state.messages.forEach { message ->
+        items(state.messages) { message ->
             Text(
                 text = message,
                 color = Color.White,
