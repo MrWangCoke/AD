@@ -48,6 +48,10 @@ import com.mrwang.ad.core.ui.components.GlassButton
 import com.mrwang.ad.core.ui.components.GlassPanel
 import com.mrwang.ad.core.ui.components.GlassTextField
 
+// Home 模块路由入口：
+// 1) 订阅 ViewModel 的 State/Effect
+// 2) 把一次性 Effect（提示）转成 Toast
+// 3) 把 State 和 Intent 分发给纯 UI 的 HomeScreen
 @Composable
 fun HomeRoute(
     backdrop: LayerBackdrop,
@@ -56,10 +60,12 @@ fun HomeRoute(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
+    // 只在首次进入该 Composable 时启动一次收集，避免重复订阅 effect。
     LaunchedEffect(Unit) {
         viewModel.effect.collect { effect ->
             when (effect) {
                 is HomeEffect.ShowMessage -> {
+                    // Effect 是一次性事件：这里负责消费并展示提示。
                     Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
                 }
             }
@@ -73,12 +79,15 @@ fun HomeRoute(
     )
 }
 
+// Home 主界面容器：
+// 纵向滚动拼装四个业务板块（绑定、步骤、问题类型、联系方式）。
 @Composable
 private fun HomeScreen(
     state: HomeState,
     backdrop: LayerBackdrop,
     onIntent: (HomeIntent) -> Unit
 ) {
+    // 给底部悬浮导航栏预留空间，避免最后一个卡片被遮挡。
     val bottomBarClearance = 112.dp
 
     Column(
@@ -123,6 +132,7 @@ private fun HomeScreen(
     }
 }
 
+// “问题类型”入口卡片：点击后打开一个弹窗，展示全部问题分类。
 @Composable
 private fun ProblemTypesPanel(
     state: HomeState,
@@ -130,6 +140,7 @@ private fun ProblemTypesPanel(
     onIntent: (HomeIntent) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // 本地 UI 状态：控制弹窗开关，不需要提升到 ViewModel。
     var isDialogOpen by remember { mutableStateOf(false) }
 
     GlassPanel(
@@ -165,6 +176,7 @@ private fun ProblemTypesPanel(
         }
     }
 
+    // 条件渲染弹窗，关闭后即销毁其内部状态与组合树。
     if (isDialogOpen) {
         ProblemTypesDialog(
             state = state,
@@ -175,6 +187,7 @@ private fun ProblemTypesPanel(
     }
 }
 
+// 问题类型弹窗：顶部标题 + 可滚动问题列表。
 @Composable
 private fun ProblemTypesDialog(
     state: HomeState,
@@ -188,6 +201,7 @@ private fun ProblemTypesDialog(
                 .fillMaxWidth()
                 .heightIn(max = 640.dp)
         ) {
+            // 半透明底层，增强玻璃面板的层次感。
             Box(
                 modifier = Modifier
                     .matchParentSize()
@@ -242,9 +256,10 @@ private fun ProblemTypesDialog(
                         verticalArrangement = Arrangement.spacedBy(14.dp)
                     ) {
                         items(
-                            items = campusNetworkProblemTypes,
-                            key = { problem -> problem.typeNo }
-                        ) { problem ->
+                        items = campusNetworkProblemTypes,
+                        key = { problem -> problem.typeNo }
+                    ) { problem ->
+                            // 每个问题项独立渲染；typeNo=3 会额外出现提交输入区。
                             ProblemTypeItem(
                                 problem = problem,
                                 backdrop = backdrop,
@@ -259,6 +274,7 @@ private fun ProblemTypesDialog(
     }
 }
 
+// 单个问题项：展示说明；当类型=3时附带短信输入与提交按钮。
 @Composable
 private fun ProblemTypeItem(
     problem: CampusNetworkProblemType,
@@ -307,6 +323,7 @@ private fun ProblemTypeItem(
                 style = MaterialTheme.typography.bodySmall
             )
             if (problem.typeNo == 3) {
+                // 类型 3 依赖短信解析宽带账号与新密码，因此需要多行输入。
                 OutlinedTextField(
                     value = state.type3SmsContent,
                     onValueChange = { onIntent(HomeIntent.OnType3SmsContentChange(it)) },
@@ -330,6 +347,7 @@ private fun ProblemTypeItem(
                     text = if (state.isSubmittingType3) "提交中..." else "提交",
                     backdrop = backdrop,
                     onClick = { onIntent(HomeIntent.OnType3Submit) },
+                    // 防空提交和防并发提交。
                     enabled = state.type3SmsContent.isNotBlank() && !state.isSubmittingType3,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -338,6 +356,7 @@ private fun ProblemTypeItem(
     }
 }
 
+// 联系方式面板：提供一键复制，减少手动输入错误。
 @Composable
 private fun ContactPanel(
     backdrop: LayerBackdrop,
@@ -345,6 +364,7 @@ private fun ContactPanel(
 ) {
     val context = LocalContext.current
     val clipboardManager = LocalClipboardManager.current
+    // TODO: 目前 QQ 群号仍是占位值，后续应替换成真实运营数据源。
     val qqGroup = "待填写"
     val wechatId = "WuWude-MrWang"
 
@@ -366,6 +386,7 @@ private fun ContactPanel(
                 label = "售后 QQ 群号：$qqGroup",
                 backdrop = backdrop,
                 onCopy = {
+                    // 复制后立即给反馈，提升操作确认感。
                     clipboardManager.setText(AnnotatedString(qqGroup))
                     Toast.makeText(context, "已复制 QQ 群号", Toast.LENGTH_SHORT).show()
                 }
@@ -382,6 +403,7 @@ private fun ContactPanel(
     }
 }
 
+// 联系方式行：左侧文本 + 右侧复制按钮。
 @Composable
 private fun ContactInfoRow(
     label: String,
@@ -407,6 +429,7 @@ private fun ContactInfoRow(
     }
 }
 
+// 连接步骤面板：纯静态引导内容，不依赖 ViewModel 状态。
 @Composable
 private fun ConnectionStepsPanel(
     backdrop: LayerBackdrop,
@@ -456,6 +479,7 @@ private fun ConnectionStepsPanel(
     }
 }
 
+// 单条连接步骤展示组件。
 @Composable
 private fun ConnectionStepItem(
     index: String,
@@ -508,6 +532,7 @@ private fun ConnectionStepItem(
     }
 }
 
+// 问题类型数据模型，仅供本文件内 UI 渲染使用。
 private data class CampusNetworkProblemType(
     val typeNo: Int,
     val name: String,
@@ -515,6 +540,8 @@ private data class CampusNetworkProblemType(
     val method: String
 )
 
+// 问题类型静态配置：
+// typeNo 与后续业务工单类型保持语义一致（例如 3=宽带密码重置）。
 private val campusNetworkProblemTypes = listOf(
     CampusNetworkProblemType(
         typeNo = 1,
@@ -566,6 +593,7 @@ private val campusNetworkProblemTypes = listOf(
     )
 )
 
+// 新用户绑定卡片：输入学号与校园卡手机号，触发绑定工单提交。
 @Composable
 private fun NewUserBindPanel(
     state: HomeState,
@@ -609,6 +637,7 @@ private fun NewUserBindPanel(
                 text = if (state.isBinding) "绑定中..." else "立即绑定",
                 backdrop = backdrop,
                 onClick = { onIntent(HomeIntent.OnBindSubmit) },
+                // 提交中禁用，避免重复点击导致并发请求。
                 enabled = !state.isBinding,
                 modifier = Modifier.fillMaxWidth()
             )

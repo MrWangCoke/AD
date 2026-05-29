@@ -17,23 +17,31 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+// 个人模块业务中枢（MVI）：
+// 管理登录、注册、重置密码、资料编辑、工单刷新与本地会话同步。
 class ProfileViewModel(
     application: Application
 ) : AndroidViewModel(application) {
 
+    // 远程接口仓库。
     private val authRepository = AuthRepository()
+    // 本地会话仓库（Room）。
     private val userSessionRepository = UserSessionRepository(application)
 
+    // 持续状态流。
     private val _state = MutableStateFlow(ProfileState())
     val state: StateFlow<ProfileState> = _state.asStateFlow()
 
+    // 一次性副作用流。
     private val _effect = MutableSharedFlow<ProfileEffect>()
     val effect: SharedFlow<ProfileEffect> = _effect.asSharedFlow()
 
     init {
+        // 启动时恢复缓存登录态并拉取工单。
         restoreCachedUser()
     }
 
+    // 意图分发中心。
     fun onIntent(intent: ProfileIntent) {
         when (intent) {
             is ProfileIntent.OnLoginPhoneChange -> _state.update { it.copy(loginPhone = intent.value) }
@@ -60,6 +68,7 @@ class ProfileViewModel(
 
             ProfileIntent.OnLogoutClick -> {
                 viewModelScope.launch {
+                    // 退出时先清会话，再清内存状态。
                     userSessionRepository.clearUser()
                     _state.update {
                         it.copy(
@@ -88,6 +97,7 @@ class ProfileViewModel(
         }
     }
 
+    // 打开编辑页前，把当前资料复制到编辑表单。
     private fun startEdit() {
         val snapshot = _state.value
         _state.update {
@@ -100,6 +110,7 @@ class ProfileViewModel(
         }
     }
 
+    // 保存资料流程：前置校验 -> 请求后端 -> 更新本地状态与缓存。
     private fun saveProfile() {
         val snapshot = _state.value
         if (!snapshot.isLoggedIn) {
@@ -151,6 +162,7 @@ class ProfileViewModel(
         }
     }
 
+    // 恢复本地缓存用户并同步工单。
     private fun restoreCachedUser() {
         viewModelScope.launch {
             userSessionRepository.getCachedUser()?.let { user ->
@@ -160,6 +172,7 @@ class ProfileViewModel(
         }
     }
 
+    // 登录流程。
     private fun login() {
         val snapshot = _state.value
         if (snapshot.loginPhone.isBlank() || snapshot.loginPassword.isBlank()) {
@@ -193,6 +206,7 @@ class ProfileViewModel(
         }
     }
 
+    // 进入重置密码模式，尽量预填学号/手机号减少输入。
     private fun startResetPassword() {
         val snapshot = _state.value
         _state.update {
@@ -206,6 +220,7 @@ class ProfileViewModel(
         }
     }
 
+    // 取消重置密码并清空重置表单。
     private fun cancelResetPassword() {
         _state.update {
             it.copy(
@@ -218,6 +233,7 @@ class ProfileViewModel(
         }
     }
 
+    // 重置密码流程：表单校验 -> 后端请求 -> 切回登录模式。
     private fun resetPassword() {
         val snapshot = _state.value
         val studentId = snapshot.resetStudentId.trim()
@@ -277,6 +293,7 @@ class ProfileViewModel(
         }
     }
 
+    // 注册流程：校验后注册并直接视为登录状态。
     private fun register() {
         val snapshot = _state.value
         if (snapshot.registerPhone.isBlank() || snapshot.registerPassword.isBlank() || snapshot.registerConfirmPassword.isBlank()) {
@@ -329,6 +346,7 @@ class ProfileViewModel(
         }
     }
 
+    // 手动刷新工单入口。
     private fun refreshTickets() {
         val userId = _state.value.userId
         if (userId <= 0L) {
@@ -340,6 +358,7 @@ class ProfileViewModel(
         }
     }
 
+    // 拉取用户工单列表并更新状态。
     private suspend fun loadTickets(userId: Long) {
         _state.update { it.copy(isTicketsLoading = true) }
         val result = authRepository.getUserTickets(userId)
@@ -353,6 +372,7 @@ class ProfileViewModel(
             }
     }
 
+    // 把后端用户模型映射进页面状态。
     private fun applyUser(user: UserResponse) {
         _state.update {
             it.copy(
@@ -371,6 +391,7 @@ class ProfileViewModel(
         }
     }
 
+    // 发出 Toast 类提示。
     private fun emitMessage(message: String) {
         viewModelScope.launch {
             _effect.emit(ProfileEffect.ShowMessage(message))

@@ -1,6 +1,5 @@
 package com.mrwang.ad.feature.message
 
-
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 
+// 消息页路由入口：订阅 state/effect，并把副作用转成 Toast。
 @Composable
 fun MessageRoute(
     viewModel: MessageViewModel = viewModel()
@@ -26,6 +26,7 @@ fun MessageRoute(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
+    // 仅初始化时启动一次 effect 收集。
     LaunchedEffect(Unit) {
         viewModel.effect.collect { effect ->
             when (effect) {
@@ -42,6 +43,7 @@ fun MessageRoute(
     )
 }
 
+// 消息页展示：渲染标题和消息列表，点击后发送 Intent 给 ViewModel。
 @Composable
 private fun MessageScreen(
     state: MessageState,

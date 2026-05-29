@@ -1,5 +1,7 @@
 package com.mrwang.ad.navigation
 
+// 文件说明：该文件已补充详细注释，重点解释数据流、状态和交互边界。
+
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
@@ -42,6 +44,8 @@ import com.kyant.backdrop.effects.blur
 import com.kyant.backdrop.effects.vibrancy
 import kotlinx.coroutines.launch
 
+// 悬浮底部导航栏：
+// 包含玻璃效果、选中态滑块动画、图标点击弹性动画和导航跳转。
 @Composable
 fun FloatingBottomBar(
     navController: NavHostController,
@@ -51,14 +55,17 @@ fun FloatingBottomBar(
 ) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
+    // 外层容器形状与选中项形状分离，便于做视觉层级。
     val shape = RoundedCornerShape(36.dp)
     val selectedShape = RoundedCornerShape(28.dp)
+    // 将输入透明度映射到 [0,1] 强度，驱动 blur/vibrancy 效果。
     val glassIntensity = (glassOpacity / 0.45f).coerceIn(0f, 1f)
     val blurRadius = 18.dp * glassIntensity
     val showGlass = glassIntensity > 0.02f
     val selectedColor = Color(0xFF2196F3)
     val unselectedColor = Color.White
     val density = LocalDensity.current
+    // 当前选中的底栏索引，用于滑块定位和图标动画方向。
     val currentIndex = bottomNavItems.indexOfFirst { item ->
         currentDestination
             ?.hierarchy
@@ -72,6 +79,7 @@ fun FloatingBottomBar(
             .padding(horizontal = 28.dp, vertical = 12.dp)
             .height(64.dp)
             .then(
+                // 玻璃效果可开关：极低强度时直接跳过特效以减少绘制成本。
                 if (showGlass) {
                     Modifier.drawBackdrop(
                         backdrop = backdrop,
@@ -95,6 +103,7 @@ fun FloatingBottomBar(
             val itemSpacing = 8.dp
             val itemCount = bottomNavItems.size
             val itemWidth = (maxWidth - itemSpacing * (itemCount - 1)) / itemCount
+            // 选中背景块的横向位移动画。
             val selectedOffset by animateDpAsState(
                 targetValue = (itemWidth + itemSpacing) * currentIndex,
                 animationSpec = spring(
@@ -126,6 +135,7 @@ fun FloatingBottomBar(
                     val selected = currentDestination
                         ?.hierarchy
                         ?.any { it.route == item.route } == true
+                    // 每个图标独立维护按压动画状态，避免互相干扰。
                     val iconScale = remember(item.route) { Animatable(1f) }
                     val iconOffsetX = remember(item.route) { Animatable(0f) }
                     val animationScope = rememberCoroutineScope()
@@ -142,6 +152,7 @@ fun FloatingBottomBar(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null
                         ) {
+                            // 点击时执行“缩小+位移+弹回”的反馈动画。
                             animationScope.launch {
                                 iconScale.stop()
                                 iconOffsetX.stop()
@@ -169,6 +180,7 @@ fun FloatingBottomBar(
                                 }
                             }
 
+                            // 非当前路由才触发导航，避免重复 navigate。
                             if (!selected) {
                                 navController.navigate(item.route) {
                                     popUpTo(navController.graph.findStartDestination().id) {

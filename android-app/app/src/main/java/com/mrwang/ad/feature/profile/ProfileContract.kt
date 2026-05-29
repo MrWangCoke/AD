@@ -2,7 +2,8 @@ package com.mrwang.ad.feature.profile
 
 import com.mrwang.ad.data.remote.model.TicketResponse
 
-
+// 个人页完整状态：
+// 同时承载展示态（资料、工单）和表单态（登录/注册/重置/编辑）。
 data class ProfileState(
     val title: String = "个人",
     val userId: Long = 0L,
@@ -30,6 +31,7 @@ data class ProfileState(
     val tickets: List<TicketResponse> = emptyList()
 )
 
+// 个人页所有用户意图。
 sealed interface ProfileIntent {
     data class OnLoginPhoneChange(val value: String) : ProfileIntent
     data class OnLoginPasswordChange(val value: String) : ProfileIntent
@@ -55,6 +57,7 @@ sealed interface ProfileIntent {
     data object OnRefreshTickets : ProfileIntent
 }
 
+// 个人页一次性副作用（提示/导航信号）。
 sealed interface ProfileEffect {
     data class ShowMessage(val message: String) : ProfileEffect
     data object LoginSuccess : ProfileEffect

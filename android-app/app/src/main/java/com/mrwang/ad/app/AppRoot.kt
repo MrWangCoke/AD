@@ -1,5 +1,6 @@
 package com.mrwang.ad.app
 
+// 文件说明：该文件已补充详细注释，重点解释数据流、状态和交互边界。
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -32,12 +33,16 @@ import com.mrwang.ad.navigation.AppNavGraph
 import com.mrwang.ad.navigation.FloatingBottomBar
 import com.mrwang.ad.navigation.bottomNavItems
 
-
+// 应用组合根：负责拼装全局背景、主导航图、浮动底栏。
 @Composable
 fun AppRoot() {
+    // 全局导航控制器。
     val navController = rememberNavController()
+    // 全局背景状态（可在个人页修改）。
     val backgroundState = rememberAppBackgroundState()
+    // 玻璃背板对象，供 backdrop 特效统一采样。
     val backdrop = rememberLayerBackdrop()
+    // 当前路由用于决定底栏显示。
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
     val showBottomBar = bottomNavItems.any { it.route == currentRoute }
@@ -57,6 +62,7 @@ fun AppRoot() {
                 modifier = Modifier.fillMaxSize()
             )
 
+            // 内容层使用透明 Scaffold，避免遮住背景。
             Scaffold(
                 modifier = Modifier.fillMaxSize(),
                 containerColor = Color.Transparent,
@@ -73,6 +79,7 @@ fun AppRoot() {
             }
         }
 
+        // 仅主导航页显示底栏。
         if (showBottomBar) {
             FloatingBottomBar(
                 navController = navController,
@@ -84,6 +91,7 @@ fun AppRoot() {
     }
 }
 
+// 背景层：显示背景图并叠加暗色遮罩以增强前景可读性。
 @Composable
 private fun AppBackground(
     state: AppBackgroundState,
@@ -94,6 +102,7 @@ private fun AppBackground(
     val imageModel: Any = imageUri ?: R.drawable.default_background
     val imageRequest = rememberBackgroundImageRequest(imageModel)
 
+    // 使用 Coil 加载图片，透明度由 state.opacity 控制。
     AsyncImage(
         model = imageRequest,
         contentDescription = null,
@@ -106,6 +115,7 @@ private fun AppBackground(
     )
 }
 
+// 构建与屏幕尺寸匹配的图片请求，减少不必要的解码开销。
 @Composable
 private fun rememberBackgroundImageRequest(model: Any): ImageRequest {
     val context = LocalContext.current
@@ -114,6 +124,7 @@ private fun rememberBackgroundImageRequest(model: Any): ImageRequest {
     val widthPx = with(density) { configuration.screenWidthDp.dp.roundToPx() }.coerceAtLeast(1)
     val heightPx = with(density) { configuration.screenHeightDp.dp.roundToPx() }.coerceAtLeast(1)
 
+    // model 或屏幕尺寸变化时才重建请求。
     return remember(model, widthPx, heightPx) {
         ImageRequest.Builder(context)
             .data(model)

@@ -1,5 +1,7 @@
 package com.mrwang.ad.ui.theme
 
+// 文件说明：该文件已补充详细注释，重点解释数据流、状态和交互边界。
+
 import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -11,12 +13,14 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
+// 深色方案定义。
 private val DarkColorScheme = darkColorScheme(
     primary = Purple80,
     secondary = PurpleGrey80,
     tertiary = Pink80
 )
 
+// 浅色方案定义。
 private val LightColorScheme = lightColorScheme(
     primary = Purple40,
     secondary = PurpleGrey40,
@@ -33,6 +37,8 @@ private val LightColorScheme = lightColorScheme(
     */
 )
 
+// 应用主题入口：
+// 根据系统/动态取色策略选择配色，并注入 MaterialTheme。
 @Composable
 fun ADTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),

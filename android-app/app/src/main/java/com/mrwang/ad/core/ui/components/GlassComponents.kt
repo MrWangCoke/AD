@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.kyant.backdrop.backdrops.LayerBackdrop
 
+// 通用玻璃面板：统一卡片底色、圆角、边框和内边距。
 @Composable
 fun GlassPanel(
     backdrop: LayerBackdrop,
@@ -47,6 +48,7 @@ fun GlassPanel(
     )
 }
 
+// 通用玻璃按钮：用于全局一致的轻玻璃视觉和可用态禁用态表现。
 @Composable
 fun GlassButton(
     text: String,
@@ -77,6 +79,7 @@ fun GlassButton(
     }
 }
 
+// 通用文本输入框：统一颜色系统、密码显示逻辑与禁用样式。
 @Composable
 fun GlassTextField(
     value: String,

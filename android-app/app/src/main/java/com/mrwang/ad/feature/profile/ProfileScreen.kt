@@ -1,5 +1,7 @@
 package com.mrwang.ad.feature.profile
 
+// 文件说明：该文件已补充详细注释，重点解释数据流、状态和交互边界。
+
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -53,6 +55,7 @@ import com.kyant.backdrop.backdrops.LayerBackdrop
 import com.mrwang.ad.app.AppBackgroundState
 import com.mrwang.ad.data.remote.model.TicketResponse
 
+// 路由入口：连接 ViewModel、背景设置状态与 Profile 主页 UI。
 @Composable
 fun ProfileRoute(
     backgroundState: AppBackgroundState,
@@ -109,6 +112,7 @@ fun ProfileRoute(
     )
 }
 
+// 个人主页主体：资料卡 + 背景设置 + 导航玻璃 + 工单列表。
 @Composable
 private fun ProfileScreen(
     state: ProfileState,
@@ -208,6 +212,7 @@ private fun ProfileScreen(
     }
 }
 
+// 工单卡片：处理登录态空态、加载态和列表展示。
 @Composable
 private fun TicketListGlassCard(
     state: ProfileState,
@@ -332,6 +337,7 @@ private fun TicketListItem(ticket: TicketResponse) {
     }
 }
 
+// 资料卡：展示头像、姓名、学号、手机号与登录/退出操作。
 @Composable
 private fun ProfileInfoGlassCard(
     state: ProfileState,

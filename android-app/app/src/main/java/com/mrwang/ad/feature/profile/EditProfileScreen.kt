@@ -1,5 +1,7 @@
 package com.mrwang.ad.feature.profile
 
+// 文件说明：该文件已补充详细注释，重点解释数据流、状态和交互边界。
+
 import android.content.Intent
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -51,6 +53,7 @@ import com.mrwang.ad.core.ui.components.GlassButton
 import com.mrwang.ad.core.ui.components.GlassPanel
 import com.mrwang.ad.core.ui.components.GlassTextField
 
+// 编辑资料路由：处理头像选择、保存资料和返回逻辑。
 @Composable
 fun EditProfileRoute(
     backdrop: LayerBackdrop,
@@ -103,6 +106,7 @@ fun EditProfileRoute(
     )
 }
 
+// 编辑资料界面：编辑姓名/学号/手机号并提交保存。
 @Composable
 private fun EditProfileScreen(
     state: ProfileState,

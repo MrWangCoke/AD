@@ -1,7 +1,5 @@
 package com.mrwang.ad.navigation
 
-
-// 删掉路径中的 .navigationfeature.home.HomeRoute
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -18,6 +16,8 @@ import com.mrwang.ad.feature.profile.ProfileRoute
 import com.mrwang.ad.feature.profile.ProfileViewModel
 import com.mrwang.ad.feature.profile.RegisterRoute
 
+// 主导航图：
+// 统一定义路由与页面跳转关系，并共享 ProfileViewModel。
 @Composable
 fun AppNavGraph(
     navController: NavHostController,
@@ -25,6 +25,7 @@ fun AppNavGraph(
     backdrop: LayerBackdrop,
     modifier: Modifier = Modifier
 ) {
+    // 资料相关页面共享同一个 ViewModel，保证登录态和编辑态一致。
     val profileViewModel: ProfileViewModel = viewModel()
 
     NavHost(
@@ -32,14 +33,17 @@ fun AppNavGraph(
         startDestination = AppRoute.Home.route,
         modifier = modifier
     ) {
+        // 首页。
         composable(AppRoute.Home.route) {
             HomeRoute(backdrop = backdrop)
         }
 
+        // 消息页。
         composable(AppRoute.Message.route) {
             MessageRoute()
         }
 
+        // 个人主页。
         composable(AppRoute.Profile.route) {
             ProfileRoute(
                 backgroundState = backgroundState,
@@ -54,6 +58,7 @@ fun AppNavGraph(
             )
         }
 
+        // 登录页：成功后回退到个人页，若回退失败则直接跳转。
         composable(AppRoute.Login.route) {
             LoginRoute(
                 backdrop = backdrop,
@@ -72,6 +77,7 @@ fun AppNavGraph(
             )
         }
 
+        // 注册页：成功后回到个人页并避免重复堆栈。
         composable(AppRoute.Register.route) {
             RegisterRoute(
                 backdrop = backdrop,
@@ -90,6 +96,7 @@ fun AppNavGraph(
             )
         }
 
+        // 编辑资料页：完成后返回上一页。
         composable(AppRoute.EditProfile.route) {
             EditProfileRoute(
                 backdrop = backdrop,

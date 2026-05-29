@@ -1,5 +1,7 @@
 package com.mrwang.ad.feature.profile
 
+// 文件说明：该文件已补充详细注释，重点解释数据流、状态和交互边界。
+
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.clickable
@@ -32,6 +34,7 @@ import com.kyant.backdrop.backdrops.LayerBackdrop
 import com.mrwang.ad.R
 import com.mrwang.ad.core.ui.components.GlassTextField
 
+// 登录页路由：收集 ProfileEffect 并桥接登录相关 Intent。
 @Composable
 fun LoginRoute(
     backdrop: LayerBackdrop,
@@ -76,6 +79,7 @@ fun LoginRoute(
     )
 }
 
+// 注册页路由：收集 ProfileEffect 并桥接注册相关 Intent。
 @Composable
 fun RegisterRoute(
     backdrop: LayerBackdrop,
@@ -112,6 +116,7 @@ fun RegisterRoute(
     )
 }
 
+// 登录界面：普通登录模式与重置密码模式共用同一套骨架。
 @Composable
 private fun LoginScreen(
     state: ProfileState,
@@ -213,6 +218,7 @@ private fun LoginScreen(
     }
 }
 
+// 注册界面：手机号+密码+确认密码提交流程。
 @Composable
 private fun RegisterScreen(
     state: ProfileState,

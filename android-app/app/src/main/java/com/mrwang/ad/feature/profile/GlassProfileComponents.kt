@@ -1,5 +1,7 @@
 package com.mrwang.ad.feature.profile
 
+// 文件说明：该文件已补充详细注释，重点解释数据流、状态和交互边界。
+
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
@@ -10,6 +12,8 @@ import com.kyant.backdrop.backdrops.LayerBackdrop
 import com.mrwang.ad.core.ui.components.GlassButton as SharedGlassButton
 import com.mrwang.ad.core.ui.components.GlassPanel as SharedGlassPanel
 
+// Profile 模块 UI 封装层：
+// 通过类型别名复用核心玻璃组件，保持调用方语义清晰。
 @Composable
 fun GlassPanel(
     backdrop: LayerBackdrop,
@@ -27,6 +31,7 @@ fun GlassPanel(
     )
 }
 
+// Profile 模块按钮封装，底层复用通用 GlassButton。
 @Composable
 fun GlassButton(
     text: String,

@@ -16,10 +16,13 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.io.IOException
 import org.json.JSONObject
 
+// 认证/工单仓库（远程）：
+// 统一封装 Retrofit 调用与错误映射，对 ViewModel 暴露 Result<T>。
 class AuthRepository(
     private val api: AuthApi = defaultAuthApi()
 ) {
 
+    // 注册。
     suspend fun register(phone: String, password: String, confirmPassword: String): Result<UserResponse> {
         return callAuth {
             api.register(
@@ -32,6 +35,7 @@ class AuthRepository(
         }
     }
 
+    // 登录。
     suspend fun login(phone: String, password: String): Result<UserResponse> {
         return callAuth {
             api.login(
@@ -43,6 +47,7 @@ class AuthRepository(
         }
     }
 
+    // 重置密码。
     suspend fun resetPassword(
         studentId: String,
         phone: String,
@@ -61,6 +66,7 @@ class AuthRepository(
         }
     }
 
+    // 新用户绑定（内部走工单接口）。
     suspend fun bindUser(userId: Long, studentId: String, phone: String): Result<TicketResponse> {
         return callTicket {
             api.createNewUserBindTicket(
@@ -73,6 +79,7 @@ class AuthRepository(
         }
     }
 
+    // 类型 3 工单：宽带密码重置。
     suspend fun createBroadbandPasswordResetTicket(
         userId: Long,
         studentId: String,
@@ -94,6 +101,7 @@ class AuthRepository(
         }
     }
 
+    // 查询用户工单列表。
     suspend fun getUserTickets(userId: Long): Result<List<TicketResponse>> {
         return try {
             Result.success(api.getUserTickets(userId))
@@ -106,6 +114,7 @@ class AuthRepository(
         }
     }
 
+    // 更新用户资料。
     suspend fun updateProfile(
         id: Long,
         phone: String,
@@ -127,6 +136,7 @@ class AuthRepository(
     }
 }
 
+// 用户相关请求统一错误包装：HTTP/网络/未知异常 -> 可展示消息。
 private suspend fun callAuth(block: suspend () -> UserResponse): Result<UserResponse> {
     return try {
         Result.success(block())
@@ -139,6 +149,7 @@ private suspend fun callAuth(block: suspend () -> UserResponse): Result<UserResp
     }
 }
 
+// 工单相关请求统一错误包装。
 private suspend fun callTicket(block: suspend () -> TicketResponse): Result<TicketResponse> {
     return try {
         Result.success(block())
@@ -151,6 +162,7 @@ private suspend fun callTicket(block: suspend () -> TicketResponse): Result<Tick
     }
 }
 
+// 解析后端错误体，尽量提取 detail/message/title 字段。
 private fun parseErrorMessage(rawBody: String?): String {
     if (rawBody.isNullOrBlank()) return "请求失败"
     return runCatching {
@@ -162,6 +174,7 @@ private fun parseErrorMessage(rawBody: String?): String {
     }.getOrDefault(rawBody)
 }
 
+// 默认 Retrofit 客户端：使用 BuildConfig 中配置的后端基址。
 private fun defaultAuthApi(): AuthApi {
     return Retrofit.Builder()
         .baseUrl(BuildConfig.AUTH_BASE_URL)

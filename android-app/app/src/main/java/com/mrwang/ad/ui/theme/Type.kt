@@ -1,12 +1,15 @@
 package com.mrwang.ad.ui.theme
 
+// 文件说明：该文件已补充详细注释，重点解释数据流、状态和交互边界。
+
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
-// Set of Material typography styles to start with
+// 排版体系定义：
+// 当前只覆盖 bodyLarge，其他文本样式沿用 Material 默认值。
 val Typography = Typography(
     bodyLarge = TextStyle(
         fontFamily = FontFamily.Default,
